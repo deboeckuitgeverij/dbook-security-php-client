@@ -1,0 +1,24 @@
+{
+    "name": "DeBoeck/dbook-security-php-client",
+    "license": "MIT",
+    "type": "project",
+    "description": "DBOOK-Security-PHP-Client",
+    "support": {
+        "email": "support@deboeckdigital.com"
+    },
+    "authors": [
+        {
+            "name": "Jérôme KLAM",
+            "email": "jerome.klam@deboeck.com"
+        },
+        {
+            "name": "PawRugg",
+            "email": "jeromeklam@free.fr"
+        }
+    ],
+    "autoload": {
+        "psr-0": {
+            "DBookSecurity": "src"
+        }
+    }
+}

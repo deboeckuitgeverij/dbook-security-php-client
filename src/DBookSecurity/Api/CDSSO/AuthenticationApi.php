@@ -277,7 +277,7 @@ class AuthenticationApi implements \DBookSecurity\Api\AuthentificationInterface
             foreach ($arr as $key => $value) {
                 if (in_array($key, array(DBCST::USER_ID, DBCST::USER_LOGIN, DBCST::USER_TITLE, DBCST::USER_LAST_NAME,
                                          DBCST::USER_FIRST_NAME, DBCST::USER_EMAIL, DBCST::USER_ROLES))) {
-                    $this->userinfo[$key] = (string) $value;
+                    $this->userinfo[$key] = $value;
                 }
             }
         }

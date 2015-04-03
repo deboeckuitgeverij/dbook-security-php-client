@@ -112,12 +112,12 @@ class AuthenticationApi implements \DBookSecurity\Api\AuthentificationInterface
                 header("Location: " . $url, true, 307);
                 exit();
             } else {
-                $url = $this->getCdssoUrl() . "&redirect=" . urlencode("http://{$_SERVER["SERVER_NAME"]}{$_SERVER["REQUEST_URI"]}?' . self::SESSION_CDSSOID . '=:cdsso:&dummy=1");
+                $url = $this->getCdssoUrl() . "&redirect=" . urlencode('http://' . $_SERVER["SERVER_NAME"] . $_SERVER["REQUEST_URI"] . '?' . self::SESSION_CDSSOID . '=:cdsso:&dummy=1');
                 header("Location: " . $url, true, 307);
                 exit();
             }
         }
-        $this->attach($auto_attach);
+        $this->attach($p_auto_attach);
     }
 
     /**

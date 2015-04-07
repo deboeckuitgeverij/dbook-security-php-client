@@ -45,4 +45,11 @@ interface AuthentificationInterface
      */
     public function completeLogout ();
 
+    /**
+     * Get user informations as array
+     *
+     * @return array
+     */
+    public function getInfo ();
+
 }

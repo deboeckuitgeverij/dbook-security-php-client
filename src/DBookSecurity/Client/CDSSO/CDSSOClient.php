@@ -1,5 +1,5 @@
 <?php
-namespace DBookSecurity\Api\CDSSO;
+namespace DBookSecurity\Client\CDSSO;
 
 use DBookSecurity\Constants AS DBCST;
 
@@ -8,7 +8,7 @@ use DBookSecurity\Constants AS DBCST;
  * @author jérôme klam <jerome.klam@deboeck.com>
  *
  */
-class AuthenticationApi implements \DBookSecurity\Api\AuthentificationInterface
+class CDSSOClient implements \DBookSecurity\Client\AuthentificationInterface
 {
 
     /**

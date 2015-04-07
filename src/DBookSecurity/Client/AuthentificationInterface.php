@@ -1,5 +1,5 @@
 <?php
-namespace DBookSecurity\Api;
+namespace DBookSecurity\Client;
 
 use DBookSecurity\Constants;
 
@@ -20,7 +20,7 @@ interface AuthentificationInterface
      */
     public function checkLoggedIn ();
 
-/**
+    /**
      * login with email and password
      *
      * @param string  $p_email

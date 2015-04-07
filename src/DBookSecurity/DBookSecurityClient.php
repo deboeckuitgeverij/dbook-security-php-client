@@ -6,29 +6,29 @@ use DBookSecurity\DBookSecurityException;
 use DBookSecurity\ErrorCodes;
 
 /**
- * Mais class, the API
+ * Mais class, the Client
  *
  * @author jérôme klam <jerome.klam@deboeck.com>
  *
  */
-class DBookSecurityApi
+class DBookSecurityClient
 {
 
     /**
      * API
-     * @var DBookSecurity\DBookSecurityApi
+     * @var DBookSecurity\DBookSecurityClient
      */
     protected static $_instance = false;
 
     /**
      * API
-     * @var DBookSecurity\Api\AuthentificationInterface
+     * @var DBookSecurity\Client\AuthentificationInterface
      */
     protected static $_authentification = false;
 
     /**
      * API
-     * @var DBookSecurity\Api\AuthorizationInterface
+     * @var DBookSecurity\Client\AuthorizationInterface
      */
     protected static $_authorization = false;
 
@@ -86,7 +86,7 @@ class DBookSecurityApi
      * 
      * @param boolean $p_debug
      * 
-     * @return \DBookSecurity\DBookSecurityApi
+     * @return \DBookSecurity\DBookSecurityClient
      */
     public static function getInstance ($p_debug = false)
     {
@@ -101,7 +101,7 @@ class DBookSecurityApi
      *
      * @param string $p_code
      *
-     * @return \DBookSecurity\DBookSecurityApi
+     * @return \DBookSecurity\DBookSecurityClient
      */
     public function setAppCode ($p_code)
     {
@@ -114,7 +114,7 @@ class DBookSecurityApi
      *
      * @param string $p_name
      *
-     * @return \DBookSecurity\DBookSecurityApi
+     * @return \DBookSecurity\DBookSecurityClient
      */
     public function setAppName ($p_name)
     {
@@ -127,7 +127,7 @@ class DBookSecurityApi
      *
      * @param string $p_url
      *
-     * @return \DBookSecurity\DBookSecurityApi
+     * @return \DBookSecurity\DBookSecurityClient
      */
     public function setLoginUrl ($p_url)
     {
@@ -140,7 +140,7 @@ class DBookSecurityApi
      *
      * @param string $p_url
      *
-     * @return \DBookSecurity\DBookSecurityApi
+     * @return \DBookSecurity\DBookSecurityClient
      */
     public function setHomeUrl ($p_url)
     {
@@ -153,7 +153,7 @@ class DBookSecurityApi
      *
      * @param boolean $p_redirect
      *
-     * @return \DBookSecurity\DBookSecurityApi
+     * @return \DBookSecurity\DBookSecurityClient
      */
     public function setRedirectToLoginIfNotLoggedIn ($p_redirect = true)
     {
@@ -195,13 +195,13 @@ class DBookSecurityApi
     /**
      * Set Authentification API
      * 
-     * @param DBookSecurity\Api\AuthentificationInterface $p_api
+     * @param DBookSecurity\Client\AuthentificationInterface $p_api
      * 
-     * @return \DBookSecurity\DBookSecurityApi
+     * @return \DBookSecurity\DBookSecurityClient
      */
-    public function setAuthenticationApi ($p_api)
+    public function setAuthenticationClient ($p_api)
     {
-        if (!$p_api instanceof \DBookSecurity\Api\AuthentificationInterface) {
+        if (!$p_api instanceof \DBookSecurity\Client\AuthentificationInterface) {
             throw new DBookSecurityException('The Authentification interface is wrong !', ErrorCodes::ERROR_WRONG_AUTHENTIFICATION_INTERFACE);
         }
         self::$_authentification = $p_api;
@@ -213,11 +213,11 @@ class DBookSecurityApi
      * 
      * @throws DBookSecurityException
      * 
-     * @return \DBookSecurity\DBookSecurity\Api\AuthentificationInterface
+     * @return \DBookSecurity\DBookSecurity\Client\AuthentificationInterface
      */
-    public function getAuthenticationApi ()
+    public function getAuthenticationClient ()
     {
-        if (self::$_authentification instanceof \DBookSecurity\Api\AuthentificationInterface) {
+        if (self::$_authentification instanceof \DBookSecurity\Client\AuthentificationInterface) {
             return self::$_authentification;
         }
         throw new DBookSecurityException('The Authentification interface is wrong !', ErrorCodes::ERROR_WRONG_AUTHENTIFICATION_INTERFACE);
@@ -226,13 +226,13 @@ class DBookSecurityApi
     /**
      * Set Authorization API
      * 
-     * @param DBookSecurity\Api\AuthorizationInterface $p_api
+     * @param DBookSecurity\Client\AuthorizationInterface $p_api
      * 
-     * @return \DBookSecurity\DBookSecurityApi
+     * @return \DBookSecurity\DBookSecurityClient
      */
-    public function setAuthorizationApi ($p_api)
+    public function setAuthorizationClient ($p_api)
     {
-        if (!$p_api instanceof \DBookSecurity\Api\AuthorizationInterface) {
+        if (!$p_api instanceof \DBookSecurity\Client\AuthorizationInterface) {
             throw new DBookSecurityException('The Authorization interface is wrong !', ErrorCodes::ERROR_WRONG_AUTHORIZATION_INTERFACE);
         }
         self::$_authorization = $p_api;
@@ -244,11 +244,11 @@ class DBookSecurityApi
      * 
      * @throws DBookSecurityException
      * 
-     * @return \DBookSecurity\DBookSecurity\Api\AuthorizationInterface
+     * @return \DBookSecurity\DBookSecurity\Client\AuthorizationInterface
      */
     public function getAuthorizationInterface ()
     {
-        if (self::$_authorization instanceof \DBookSecurity\Api\AuthorizationInterface) {
+        if (self::$_authorization instanceof \DBookSecurity\Client\AuthorizationInterface) {
             return self::$_authorization;
         }
         throw new DBookSecurityException('The Authorization interface is wrong !', ErrorCodes::ERROR_WRONG_AUTHORIZATION_INTERFACE);
@@ -265,7 +265,7 @@ class DBookSecurityApi
     {
         $infos = array();
         try {
-            $api   = $this->getAuthenticationApi();
+            $api   = $this->getAuthenticationClient();
             $infos = $api->getInfo();
             return $infos;
         } catch (\Exception $ex) {
@@ -280,13 +280,13 @@ class DBookSecurityApi
      * @param string $p_redirectMode
      * @param string $p_redirectOnSuccess
      *
-     * @return \DBookSecurity\DBookSecurityApi
+     * @return \DBookSecurity\DBookSecurityClient
      */
     public function checkLoggedIn ($p_redirectOnError = Constants::REDIRECT_NONE,
                                    $p_redirectOnSuccess = Constants::REDIRECT_NONE)
     {
         try {
-            $api    = $this->getAuthenticationApi();
+            $api    = $this->getAuthenticationClient();
             $result = $api->checkLoggedIn();
             if (!$result) {
                 $this->redirectTo($p_redirectOnError);
@@ -310,7 +310,7 @@ class DBookSecurityApi
     public function isAuthenticated ($p_redirectOnError = Constants::REDIRECT_NONE)
     {
         try {
-            $api = $this->getAuthenticationApi();
+            $api = $this->getAuthenticationClient();
             return $api->checkLoggedIn();
         } catch (\Exception $ex) {
             $this->redirectTo($p_redirectOnError);
@@ -327,14 +327,14 @@ class DBookSecurityApi
      * @param string  $p_redirectMode
      * @param string  $p_redirectOnError
      *
-     * @return \DBookSecurity\DBookSecurityApi
+     * @return \DBookSecurity\DBookSecurityClient
      */
     public function loginByEmailAndPassword ($p_email, $p_password, $p_autoLogin = false,
                                              $p_redirectMode = Constants::REDIRECT_TO_HOME,
                                              $p_redirectOnError = Constants::REDIRECT_NONE)
     {
         try {
-            $api    = $this->getAuthenticationApi();
+            $api    = $this->getAuthenticationClient();
             $result = $api->loginByEmailAndPassword($p_email, $p_password, $p_autoLogin);
             if (!$result) {
                 // Need to send error...
@@ -355,13 +355,13 @@ class DBookSecurityApi
      * @param string  $p_redirectMode
      * @param string  $p_redirectOnError
      *
-     * @return \DBookSecurity\DBookSecurityApi
+     * @return \DBookSecurity\DBookSecurityClient
      */
     public function logout ($p_redirectMode = Constants::REDIRECT_TO_LOGIN,
                             $p_redirectOnError = Constants::REDIRECT_NONE)
     {
         try {
-            $api    = $this->getAuthenticationApi();
+            $api    = $this->getAuthenticationClient();
             $result = $api->completeLogout();
             if ($result) {
                 $this->redirectTo($p_redirectMode);
@@ -379,13 +379,13 @@ class DBookSecurityApi
      * @param string  $p_redirectMode
      * @param string  $p_redirectOnError
      *
-     * @return \DBookSecurity\DBookSecurityApi
+     * @return \DBookSecurity\DBookSecurityClient
      */
     public function completeLogout ($p_redirectMode = Constants::REDIRECT_TO_LOGIN,
                                     $p_redirectOnError = Constants::REDIRECT_NONE)
     {
         try {
-            $api    = $this->getAuthenticationApi();
+            $api    = $this->getAuthenticationClient();
             $result = $api->completeLogout();
             if ($result) {
                 $this->redirectTo($p_redirectMode);
@@ -404,7 +404,7 @@ class DBookSecurityApi
      * @param string $p_accessMode
      * @param string $p_redirectMode
      *
-     * @return \DBookSecurity\DBookSecurityApi
+     * @return \DBookSecurity\DBookSecurityClient
      */
     public function checkAccess ($p_productCode, $p_accessMode = Constants::ACCESS_READ, $p_redirectMode = Constants::REDIRECT_NONE)
     {

@@ -1,5 +1,5 @@
 <?php
-namespace DBookSecurity\Api;
+namespace DBookSecurity\Client;
 
 use DBookSecurity\Constants;
 

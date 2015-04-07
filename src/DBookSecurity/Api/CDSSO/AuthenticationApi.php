@@ -231,11 +231,11 @@ class AuthenticationApi implements \DBookSecurity\Api\AuthentificationInterface
                 if ($this->pass401) {
                     header("HTTP/1.1 401 Unauthorized");
                 }
-                return 0;
             default:
                 var_dump($body);die;
                 throw new \Exception("SSO failure: The server responded with a $ret status" . (!empty($body) ? ': "' . substr(str_replace("\n", " ", trim(strip_tags($body))), 0, 256) .'".' : '.'));
         }
+        return false;
     }
 
     /**

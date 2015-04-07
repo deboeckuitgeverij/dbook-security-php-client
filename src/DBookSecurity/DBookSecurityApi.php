@@ -267,10 +267,11 @@ class DBookSecurityApi
         try {
             $api   = $this->getAuthenticationApi();
             $infos = $api->getInfo();
+            return $infos;
         } catch (\Exception $ex) {
             $this->redirectTo($p_redirectOnError);
         }
-        return $infos;
+        return false;
     }
 
     /**
@@ -291,11 +292,12 @@ class DBookSecurityApi
                 $this->redirectTo($p_redirectOnError);
             } else {
                 $this->redirectTo($p_redirectOnSuccess);
+                return true;
             }
         } catch (\Exception $ex) {
             $this->redirectTo($p_redirectOnError);
         }
-        return $this;
+        return false;
     }
 
     /**
@@ -313,7 +315,7 @@ class DBookSecurityApi
         } catch (\Exception $ex) {
             $this->redirectTo($p_redirectOnError);
         }
-        return $this;
+        return false;
     }
 
     /**
@@ -339,11 +341,12 @@ class DBookSecurityApi
                 $this->redirectTo($p_redirectOnError);
             } else {
                 $this->redirectTo($p_redirectMode);
+                return true;
             }
         } catch (\Exception $ex) {
             $this->redirectTo($p_redirectOnError);
         }
-        return $this;
+        return false;
     }
 
     /**
@@ -362,11 +365,12 @@ class DBookSecurityApi
             $result = $api->completeLogout();
             if ($result) {
                 $this->redirectTo($p_redirectMode);
+                return true;
             }
         } catch (\Exception $ex) {
             $this->redirectTo($p_redirectOnError);
         }
-        return $this;
+        return false;
     }
 
     /**
@@ -385,11 +389,12 @@ class DBookSecurityApi
             $result = $api->completeLogout();
             if ($result) {
                 $this->redirectTo($p_redirectMode);
+                return true;
             }
         } catch (\Exception $ex) {
             $this->redirectTo($p_redirectOnError);
         }
-        return $this;
+        return false;
     }
 
     /**

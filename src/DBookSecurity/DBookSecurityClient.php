@@ -4,6 +4,8 @@ namespace DBookSecurity;
 use DBookSecurity\Constants;
 use DBookSecurity\DBookSecurityException;
 use DBookSecurity\ErrorCodes;
+use DBookSecurity\Client\Model\User;
+use DBookSecurity\Client\Model\Product;
 
 /**
  * Mais class, the Client
@@ -15,19 +17,19 @@ class DBookSecurityClient
 {
 
     /**
-     * API
+     * Client
      * @var DBookSecurity\DBookSecurityClient
      */
     protected static $_instance = false;
 
     /**
-     * API
+     * Auth
      * @var DBookSecurity\Client\AuthentificationInterface
      */
     protected static $_authentification = false;
 
     /**
-     * API
+     * Auth
      * @var DBookSecurity\Client\AuthorizationInterface
      */
     protected static $_authorization = false;
@@ -195,16 +197,16 @@ class DBookSecurityClient
     /**
      * Set Authentification API
      * 
-     * @param DBookSecurity\Client\AuthentificationInterface $p_api
+     * @param DBookSecurity\Client\AuthentificationInterface $p_client
      * 
      * @return \DBookSecurity\DBookSecurityClient
      */
-    public function setAuthenticationClient ($p_api)
+    public function setAuthenticationClient ($p_client)
     {
-        if (!$p_api instanceof \DBookSecurity\Client\AuthentificationInterface) {
+        if (!$p_client instanceof \DBookSecurity\Client\AuthentificationInterface) {
             throw new DBookSecurityException('The Authentification interface is wrong !', ErrorCodes::ERROR_WRONG_AUTHENTIFICATION_INTERFACE);
         }
-        self::$_authentification = $p_api;
+        self::$_authentification = $p_client;
         return $this;
     }
 
@@ -226,16 +228,16 @@ class DBookSecurityClient
     /**
      * Set Authorization API
      * 
-     * @param DBookSecurity\Client\AuthorizationInterface $p_api
+     * @param DBookSecurity\Client\AuthorizationInterface $p_client
      * 
      * @return \DBookSecurity\DBookSecurityClient
      */
-    public function setAuthorizationClient ($p_api)
+    public function setAuthorizationClient ($p_client)
     {
-        if (!$p_api instanceof \DBookSecurity\Client\AuthorizationInterface) {
+        if (!$p_client instanceof \DBookSecurity\Client\AuthorizationInterface) {
             throw new DBookSecurityException('The Authorization interface is wrong !', ErrorCodes::ERROR_WRONG_AUTHORIZATION_INTERFACE);
         }
-        self::$_authorization = $p_api;
+        self::$_authorization = $p_client;
         return $this;
     }
 
@@ -246,7 +248,7 @@ class DBookSecurityClient
      * 
      * @return \DBookSecurity\DBookSecurity\Client\AuthorizationInterface
      */
-    public function getAuthorizationInterface ()
+    public function getAuthorizationClient ()
     {
         if (self::$_authorization instanceof \DBookSecurity\Client\AuthorizationInterface) {
             return self::$_authorization;
@@ -257,21 +259,23 @@ class DBookSecurityClient
     /**
      * get user Infos
      *
-     * @param string  $p_redirectOnError
+     * @param string $p_redirectOnError
      *
-     * @return array
+     * @return User|boolean
      */
-    public function getInfos ($p_redirectOnError = Constants::REDIRECT_NONE)
+    public function getUser ($p_redirectOnError = Constants::REDIRECT_NONE)
     {
-        $infos = array();
+        $user = false;
         try {
-            $api   = $this->getAuthenticationClient();
-            $infos = $api->getInfo();
-            return $infos;
+            $client = $this->getAuthenticationClient();
+            $user   = $client->getUser();
+            if ($user === false) {
+                $this->redirectTo($p_redirectOnError);
+            }
         } catch (\Exception $ex) {
             $this->redirectTo($p_redirectOnError);
         }
-        return false;
+        return $user;
     }
 
     /**
@@ -286,8 +290,8 @@ class DBookSecurityClient
                                    $p_redirectOnSuccess = Constants::REDIRECT_NONE)
     {
         try {
-            $api    = $this->getAuthenticationClient();
-            $result = $api->checkLoggedIn();
+            $client = $this->getAuthenticationClient();
+            $result = $client->checkLoggedIn();
             if (!$result) {
                 $this->redirectTo($p_redirectOnError);
             } else {
@@ -301,7 +305,7 @@ class DBookSecurityClient
     }
 
     /**
-     * Is authenticatde ?
+     * Is authenticated ?
      * 
      * @param string  $p_redirectOnError
      * 
@@ -310,8 +314,8 @@ class DBookSecurityClient
     public function isAuthenticated ($p_redirectOnError = Constants::REDIRECT_NONE)
     {
         try {
-            $api = $this->getAuthenticationClient();
-            return $api->checkLoggedIn();
+            $client = $this->getAuthenticationClient();
+            return $client->checkLoggedIn();
         } catch (\Exception $ex) {
             $this->redirectTo($p_redirectOnError);
         }
@@ -334,8 +338,8 @@ class DBookSecurityClient
                                              $p_redirectOnError = Constants::REDIRECT_NONE)
     {
         try {
-            $api    = $this->getAuthenticationClient();
-            $result = $api->loginByEmailAndPassword($p_email, $p_password, $p_autoLogin);
+            $client = $this->getAuthenticationClient();
+            $result = $client->loginByEmailAndPassword($p_email, $p_password, $p_autoLogin);
             if (!$result) {
                 // Need to send error...
                 $this->redirectTo($p_redirectOnError);
@@ -361,11 +365,13 @@ class DBookSecurityClient
                             $p_redirectOnError = Constants::REDIRECT_NONE)
     {
         try {
-            $api    = $this->getAuthenticationClient();
-            $result = $api->completeLogout();
+            $client = $this->getAuthenticationClient();
+            $result = $client->completeLogout();
             if ($result) {
                 $this->redirectTo($p_redirectMode);
                 return true;
+            } else {
+                $this->redirectTo($p_redirectOnError);
             }
         } catch (\Exception $ex) {
             $this->redirectTo($p_redirectOnError);
@@ -385,11 +391,13 @@ class DBookSecurityClient
                                     $p_redirectOnError = Constants::REDIRECT_NONE)
     {
         try {
-            $api    = $this->getAuthenticationClient();
-            $result = $api->completeLogout();
+            $client = $this->getAuthenticationClient();
+            $result = $client->completeLogout();
             if ($result) {
                 $this->redirectTo($p_redirectMode);
                 return true;
+            } else {
+                $this->redirectTo($p_redirectOnError);
             }
         } catch (\Exception $ex) {
             $this->redirectTo($p_redirectOnError);
@@ -398,38 +406,51 @@ class DBookSecurityClient
     }
 
     /**
-     * Check access
-     *
-     * @param string $p_productCode
-     * @param string $p_accessMode
-     * @param string $p_redirectMode
-     *
-     * @return \DBookSecurity\DBookSecurityClient
+     * Try to get one token per product
+     * 
+     * @param array  $p_products
+     * @param string $p_redirectOnError
+     * 
+     * @return array
      */
-    public function checkAccess ($p_productCode, $p_accessMode = Constants::ACCESS_READ, $p_redirectMode = Constants::REDIRECT_NONE)
+    public function takeToken ($p_products, $p_redirectOnError = Constants::REDIRECT_NONE)
     {
-        return $this;
+        $result = array();
+        try {
+            $client = $this->getAuthorizationClient();
+            $result = $client->takeToken($p_products);
+            if ($result === false) {
+                $this->redirectTo($p_redirectOnError);
+            }
+        } catch (\Exception $ex) {
+            $this->redirectTo($p_redirectOnError);
+        }
+        return $result;
     }
 
     /**
-     * Get access list
+     * Free products token
      *
-     * @param string $p_productCode
-     * @param string $p_ressourceCode
+     * @param array  $p_products
+     * @param string $p_redirectOnError
      *
      * @return array
      */
-    public function getAccessList ($p_productCode, $p_ressourceCode)
+    public function freeToken ($p_products, $p_redirectOnError = Constants::REDIRECT_NONE)
     {
-        return array(Constants::ACCESS_READ, Constants::ACCESS_ADD, Constants::ACCESS_MODIFY, Constants::ACCESS_DELETE);
-    }
-
-    /**
-     * Handle
-     */
-    public function handle ()
-    {
-        die('We are goging to check, ...');
+        $result = array();
+        try {
+            $client = $this->getAuthorizationClient();
+            $result = $client->freeToken($p_products);
+            if ($result !== false) {
+                return true;
+            } else {
+                $this->redirectTo($p_redirectOnError);
+            }
+        } catch (\Exception $ex) {
+            $this->redirectTo($p_redirectOnError);
+        }
+        return false;
     }
 
 }

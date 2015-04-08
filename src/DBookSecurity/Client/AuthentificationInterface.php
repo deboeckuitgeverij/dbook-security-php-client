@@ -46,10 +46,10 @@ interface AuthentificationInterface
     public function completeLogout ();
 
     /**
-     * Get user informations as array
-     *
-     * @return array
+     * Get user information.
+     * 
+     * @return User|boolean
      */
-    public function getInfo ();
+    public function getUser ();
 
 }

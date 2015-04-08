@@ -19,6 +19,18 @@ class User
     protected $id = null;
 
     /**
+     * User login
+     * @var string
+     */
+    protected $login = null;
+
+    /**
+     * User password (not crypt)
+     * @var string
+     */
+    protected $password = null;
+
+    /**
      * User title
      * @var string
      */
@@ -35,6 +47,12 @@ class User
      * @var string
      */
     protected $lastname = null;
+
+    /**
+     * User email
+     * @var string
+     */
+    protected $email = null;
 
     /**
      * User products
@@ -63,6 +81,52 @@ class User
     public function getId ()
     {
         return $this->id;
+    }
+
+    /**
+     * Login setter
+     * 
+     * @param string $p_login
+     * 
+     * @return \DBookSecurity\Client\Model\User
+     */
+    public function setLogin ($p_login)
+    {
+        $this->login = $p_login;
+        return $this;
+    }
+
+    /**
+     * Login getter
+     * 
+     * @return string
+     */
+    public function getLogin ()
+    {
+        return $this->login;
+    }
+
+    /**
+     * Password setter
+     * 
+     * @param string $p_paswd
+     * 
+     * @return \DBookSecurity\Client\Model\User
+     */
+    public function setPassword ($p_paswd)
+    {
+        $this->password = $p_paswd;
+        return $this;
+    }
+
+    /**
+     * Password getter
+     * 
+     * @return string
+     */
+    public function getPassword ()
+    {
+        return $this->password;
     }
 
     /**
@@ -135,6 +199,29 @@ class User
     }
 
     /**
+     * Email setter
+     * 
+     * @param string $p_email
+     * 
+     * @return \DBookSecurity\Client\Model\User
+     */
+    public function setEmail ($p_email)
+    {
+        $this->email = $p_email;
+        return $this;
+    }
+
+    /**
+     * Email getter
+     * 
+     * @return string
+     */
+    public function getEmail ()
+    {
+        return $this->email;
+    }
+
+    /**
      * Flush products
      * 
      * @return \DBookSecurity\Client\Model\User
@@ -192,6 +279,19 @@ class User
             }
         }
         return false;
+    }
+
+    /**
+     * Validate object
+     * 
+     * @return boolean
+     */
+    public function isValid ()
+    {
+        if ($this->getId() === null || $this->getLogin() === null || $this->getEmail() === null) {
+            return false;
+        }
+        return true;
     }
 
 }

@@ -12,6 +12,13 @@ class Product
 {
 
     /**
+     * Types constants
+     * @var string
+     */
+    const TYPE_USER  = 'user';
+    const TYPE_GROUP = 'group';
+
+    /**
      * Product id
      * @var string
      */
@@ -46,6 +53,12 @@ class Product
      * @var string
      */
     protected $type = null;
+
+    /**
+     * Group name
+     * @var string
+     */
+    protected $group = null;
 
     /**
      * Product tokens
@@ -172,12 +185,20 @@ class Product
      * Type setter
      * 
      * @param string $p_type
+     * @param string $p_group
      * 
      * @return \DBookSecurity\Client\Model\Product
      */
-    public function setType ($p_type)
+    public function setType ($p_type, $p_group = null)
     {
-        $this->type = $p_type;
+        $this->type  = self::TYPE_USER;
+        $this->group = null;
+        if (in_array($p_type, array(self::TYPE_USER, self::TYPE_GROUP))) {
+            $this->type = $p_type;
+            if ($p_type === self::TYPE_GROUP) {
+                $this->group = $p_group;
+            }
+        }
         return $this;
     }
 

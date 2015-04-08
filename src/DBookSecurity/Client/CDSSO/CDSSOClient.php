@@ -2,13 +2,15 @@
 namespace DBookSecurity\Client\CDSSO;
 
 use DBookSecurity\Constants AS DBCST;
+use DBookSecurity\Client\Model\User;
+use DBookSecurity\Client\Model\Product;
 
 /**
  *
  * @author jérôme klam <jerome.klam@deboeck.com>
  *
  */
-class CDSSOClient implements \DBookSecurity\Client\AuthentificationInterface
+class CDSSOClient implements \DBookSecurity\Client\AuthentificationInterface, \DBookSecurity\Client\AuthorizationInterface
 {
 
     /**
@@ -70,7 +72,7 @@ class CDSSOClient implements \DBookSecurity\Client\AuthentificationInterface
      * User info received from the server.
      * @var array
      */
-    protected $userinfo;
+    protected $userinfo = null;
 
     /**
      * IP forced, VM's and public access
@@ -174,6 +176,41 @@ class CDSSOClient implements \DBookSecurity\Client\AuthentificationInterface
     }
 
     /**
+     * Execute on SSO server.
+     *
+     * @param string $cmd
+     * @param array  $vars
+     *
+     * @return array
+     */
+    protected function serverCmd ($p_cmd, $p_vars = null)
+    {
+        $curl = curl_init($this->url . '/' . urlencode($p_cmd));
+        curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($curl, CURLOPT_COOKIE, "PHPSESSID=" . $this->getSessionId() . ';CDSSOSSID=' . $this->getCdssoId());
+        if (isset($p_vars)) {
+            curl_setopt($curl, CURLOPT_POST, true);
+            curl_setopt($curl, CURLOPT_POSTFIELDS, $p_vars);
+        }
+        curl_setopt($curl, CURLOPT_SSL_VERIFYPEER, false);
+        $body = curl_exec($curl);
+        $ret  = curl_getinfo($curl, CURLINFO_HTTP_CODE);
+        if (curl_errno($curl) != 0) {
+            echo '<pre>' . print_r($body, true) . '</pre>';
+            throw new \Exception("SSO failure: HTTP request to server failed. " . curl_error($curl));
+        }
+        if (json_decode($body) === false || json_decode($body) === null) {
+            echo '<pre>' . print_r($body, true) . '</pre>';
+            throw new \Exception("SSO failure: HTTP request to server failed !");
+        }
+        curl_close($curl);
+        return array(
+            $ret,
+            $body
+        );
+    }
+
+    /**
      * Get URL to attach session at SSO server
      *
      * @return string
@@ -274,24 +311,65 @@ class CDSSOClient implements \DBookSecurity\Client\AuthentificationInterface
         $result = json_decode($p_response);
         if ($result !== null && $result->_meta->status == 'SUCCESS') {
             $arr = (array) $result->records;
-            $this->userinfo['identity'] = $arr['id'];
+            // Init user object
+            $this->userinfo = new User();
             foreach ($arr as $key => $value) {
-                if (in_array($key, array(DBCST::USER_ID, DBCST::USER_LOGIN, DBCST::USER_TITLE, DBCST::USER_LAST_NAME,
-                                         DBCST::USER_FIRST_NAME, DBCST::USER_EMAIL, DBCST::USER_ROLES))) {
-                    $this->userinfo[$key] = $value;
+                switch ($key) {
+                    case DBCST::USER_ID:
+                        $this->userinfo->setId($arr[$key]);
+                        break;
+                    case DBCST::USER_LOGIN:
+                        $this->userinfo->setLogin($arr[$key]);
+                        break;
+                    case DBCST::USER_TITLE:
+                        $this->userinfo->setTitle($arr[$key]);
+                        break;
+                    case DBCST::USER_LAST_NAME:
+                        $this->userinfo->setLastname($arr[$key]);
+                        break;
+                    case DBCST::USER_FIRST_NAME:
+                        $this->userinfo->setFirstname($arr[$key]);
+                        break;
+                    case DBCST::USER_EMAIL:
+                        $this->userinfo->setEmail($arr[$key]);
+                        break;
+                    case DBCST::USER_ROLES:
+                        $roles = $arr[$key];
+                        foreach ($roles as $oneProduct) {
+                            $aProduct = new Product();
+                            $aProduct
+                                ->setId($oneProduct->code)
+                                ->setCode($oneProduct->code)
+                                ->setFrom($oneProduct->from)
+                                ->setTo($oneProduct->to)
+                                ->setTokens($oneProduct->tokens)
+                            ;
+                            if ($oneProduct->type == '' || $oneProduct->type == '0' || $oneProduct->type === false) {
+                                $aProduct->setType(Product::TYPE_USER);
+                            } else {
+                                $aProduct->setType(Product::TYPE_GROUP, $oneProduct->type);
+                            }
+                            $this->userinfo->addProduct($aProduct);
+                        }
+                        break;
                 }
             }
+            if (!$this->userinfo->isValid()) {
+                $this->userinfo = false;
+            }
+        } else {
+            $this->userinfo = false;
         }
     }
 
     /**
      * Get user information.
      * 
-     * @return array
+     * @return User|boolean
      */
-    public function getInfo ()
+    public function getUser ()
     {
-        if (! isset($this->userinfo)) {
+        if ($this->userinfo === null || $this->userinfo === false) {
             list ($ret, $body) = $this->serverCmd('info');
             switch ($ret) {
                 case 200:
@@ -307,7 +385,7 @@ class CDSSOClient implements \DBookSecurity\Client\AuthentificationInterface
                     // session destroyed, expired, ...
                     setcookie(self::SESSION_TOKEN, null, time() - 1000);
                     $this->sessionToken = null;
-                    $this->userinfo = false;
+                    $this->userinfo     = false;
                     $this->attach(true);
                     break;
                 default:
@@ -318,63 +396,46 @@ class CDSSOClient implements \DBookSecurity\Client\AuthentificationInterface
     }
 
     /**
-     * Ouput user information as XML
+     * Try to get a token per product
+     *
+     * @param array  $p_products
+     *
+     * @return array
      */
-    public function info ()
+    public function takeToken ($p_products)
     {
-        $this->getInfo();
-        if (! $this->userinfo) {
-            if ($this->pass401) {
-                header("HTTP/1.0 401 Unauthorized");
-                echo "Not logged in";
-                exit();
-            }
+        $result = array();
+        // Call server
+        list ($ret, $body) = $this->serverCmd('take', $p_products);
+        switch ($ret) {
+            case 200:
+                var_dump($body);die;
+                break;
+            default:
+                throw new \Exception("SSO failure: The server responded with a $ret status" . (! empty($body) ? ': "' . substr(str_replace("\n", " ", trim(strip_tags($body))), 0, 256) . '".' : '.'));
         }
-        header('Content-type: text/xml; charset=UTF-8');
-        echo '<?xml version="1.0" encoding="UTF-8" ?>', "\n";
-        echo '<user identity="' . htmlspecialchars($this->userinfo['identity'], ENT_COMPAT, 'UTF-8') . '">', "\n";
-        foreach ($this->userinfo as $key => $value) {
-            if ($key == 'identity') {
-                continue;
-            }
-            echo "<$key>", htmlspecialchars($value, ENT_COMPAT, 'UTF-8'), "</$key>", "\n";
-        }
-        echo '</user>';
+        return $result;
     }
 
     /**
-     * Execute on SSO server.
+     * Free products tokens
      *
-     * @param string $cmd
-     * @param array  $vars
-     * 
-     * @return array
+     * @param array  $p_products
+     *
+     * @return boolean
      */
-    protected function serverCmd ($p_cmd, $p_vars = null)
+    public function freeToken ($p_products)
     {
-        $curl = curl_init($this->url . '/' . urlencode($p_cmd));
-        curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
-        curl_setopt($curl, CURLOPT_COOKIE, "PHPSESSID=" . $this->getSessionId() . ';CDSSOSSID=' . $this->getCdssoId());
-        if (isset($p_vars)) {
-            curl_setopt($curl, CURLOPT_POST, true);
-            curl_setopt($curl, CURLOPT_POSTFIELDS, $p_vars);
+        // Call server
+        list ($ret, $body) = $this->serverCmd('free', $p_products);
+        switch ($ret) {
+            case 200:
+                return true;
+                break;
+            default:
+                throw new \Exception("SSO failure: The server responded with a $ret status" . (! empty($body) ? ': "' . substr(str_replace("\n", " ", trim(strip_tags($body))), 0, 256) . '".' : '.'));
         }
-        curl_setopt($curl, CURLOPT_SSL_VERIFYPEER, false);
-        $body = curl_exec($curl);
-        $ret  = curl_getinfo($curl, CURLINFO_HTTP_CODE);
-        if (curl_errno($curl) != 0) {
-            echo '<pre>' . print_r($body, true) . '</pre>';
-            throw new \Exception("SSO failure: HTTP request to server failed. " . curl_error($curl));
-        }
-        if (json_decode($body) === false || json_decode($body) === null) {
-            echo '<pre>' . print_r($body, true) . '</pre>';
-            throw new \Exception("SSO failure: HTTP request to server failed !");
-        }
-        curl_close($curl);
-        return array(
-            $ret,
-            $body
-        );
+        return false;
     }
 
 }

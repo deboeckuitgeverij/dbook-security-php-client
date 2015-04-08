@@ -12,23 +12,21 @@ interface AuthorizationInterface
 {
 
     /**
-     * Check access
+     * Try to get a token per product
      * 
-     * @param string $p_productCode
-     * @param string $p_accessMode
-     * @param string $p_redirectMode
-     * 
-     * @return this
-     */
-    public function checkAccess ($p_productCode, $p_accessMode = Constants::ACCESS_READ, $p_redirectMode = Constants::REDIRECT_NONE);
-
-    /**
-     * Get access list
-     * 
-     * @param string $p_productCode
+     * @param array $p_products
      * 
      * @return array
      */
-    public function getAccessList ($p_productCode, $p_ressourceCode);
+    public function takeToken ($p_products);
+
+    /**
+     * Free products tokens
+     *
+     * @param array  $p_products
+     *
+     * @return boolean
+     */
+    public function freeToken ($p_products);
 
 }

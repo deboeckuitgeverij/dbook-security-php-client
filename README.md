@@ -35,7 +35,7 @@ Available for the browser session only.
 
 # Versions
 
-* 1.0.7 - 08/04/2015
+* 1.1.0 - 08/04/2015
     * Objects as models
     * tokens (take/free) 
 

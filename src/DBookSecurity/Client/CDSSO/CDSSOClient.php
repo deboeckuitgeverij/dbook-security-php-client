@@ -363,6 +363,23 @@ class CDSSOClient implements \DBookSecurity\Client\AuthentificationInterface, \D
     }
 
     /**
+     * Set user info from user XML
+     *
+     * @param string $p_response
+     */
+    protected function parseTokens ($p_response)
+    {
+        $ret = array();
+        // result is an array of products
+        $result = json_decode($p_response);
+        if ($result !== null && $result->_meta->status == 'SUCCESS') {
+            $arr = (array) $result->records;
+            var_dump($arr);die;
+        }
+        return $ret;
+    }
+
+    /**
      * Get user information.
      * 
      * @return User|boolean
@@ -409,7 +426,7 @@ class CDSSOClient implements \DBookSecurity\Client\AuthentificationInterface, \D
         list ($ret, $body) = $this->serverCmd('take', $p_products);
         switch ($ret) {
             case 200:
-                var_dump($body);die;
+                $result = $this->parseTokens($body);
                 break;
             default:
                 throw new \Exception("SSO failure: The server responded with a $ret status" . (! empty($body) ? ': "' . substr(str_replace("\n", " ", trim(strip_tags($body))), 0, 256) . '".' : '.'));

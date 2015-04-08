@@ -418,7 +418,15 @@ class DBookSecurityClient
         $result = array();
         try {
             $client = $this->getAuthorizationClient();
-            $result = $client->takeToken($p_products);
+            $products = '';
+            foreach ($p_products as $key=>$value) {
+                if ($products == '') {
+                    $products = $key;
+                } else {
+                    $products = $products . ';' . $key;
+                }
+            }
+            $result = $client->takeToken(array('products' => $products));
             if ($result === false) {
                 $this->redirectTo($p_redirectOnError);
             }

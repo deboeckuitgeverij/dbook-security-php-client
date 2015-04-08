@@ -374,7 +374,6 @@ class CDSSOClient implements \DBookSecurity\Client\AuthentificationInterface, \D
         $result = json_decode($p_response);
         if ($result !== null && $result->_meta->status == 'SUCCESS') {
             $arr = (array) $result->records;
-            var_dump($arr);die;
         }
         return $ret;
     }

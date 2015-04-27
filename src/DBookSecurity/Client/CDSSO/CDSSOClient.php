@@ -114,7 +114,11 @@ class CDSSOClient implements \DBookSecurity\Client\AuthentificationInterface, \D
                 header("Location: " . $url, true, 307);
                 exit();
             } else {
-                $url = $this->getCdssoUrl() . "&redirect=" . urlencode('http://' . $_SERVER["SERVER_NAME"] . $_SERVER["REQUEST_URI"] . '?' . self::SESSION_CDSSOID . '=:cdsso:&dummy=1');
+                $car = '?';
+                if (strpos($_SERVER["REQUEST_URI"], '?') !== false) {
+                    $car = '&';
+                }
+                $url = $this->getCdssoUrl() . "&redirect=" . urlencode('http://' . $_SERVER["SERVER_NAME"] . $_SERVER["REQUEST_URI"] . $car . self::SESSION_CDSSOID . '=:cdsso:&dummy=1');
                 header("Location: " . $url, true, 307);
                 exit();
             }

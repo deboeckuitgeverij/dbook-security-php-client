@@ -1,7 +1,7 @@
 <?php
-namespace DBookSecurity\Client\Model;
+namespace DBookSecurityClient\Model;
 
-use DBookSecurity\Constants AS DBCST;
+use DBookSecurityConstants AS DBCST;
 
 /**
  *
@@ -71,7 +71,7 @@ class Product
      * 
      * @param string $p_id
      * 
-     * @return \DBookSecurity\Client\Model\Product
+     * @return \DBookSecurityClient\Model\Product
      */
     public function setId ($p_id)
     {
@@ -94,7 +94,7 @@ class Product
      * 
      * @param string $p_code
      * 
-     * @return \DBookSecurity\Client\Model\Product
+     * @return \DBookSecurityClient\Model\Product
      */
     public function setCode ($p_code)
     {
@@ -117,7 +117,7 @@ class Product
      * 
      * @param string $p_name
      * 
-     * @return \DBookSecurity\Client\Model\Product
+     * @return \DBookSecurityClient\Model\Product
      */
     public function setName ($p_name)
     {
@@ -140,7 +140,7 @@ class Product
      * 
      * @param datetime $p_from
      * 
-     * @return \DBookSecurity\Client\Model\Product
+     * @return \DBookSecurityClient\Model\Product
      */
     public function setFrom ($p_from)
     {
@@ -163,7 +163,7 @@ class Product
      * 
      * @param datetime $p_to
      * 
-     * @return \DBookSecurity\Client\Model\Product
+     * @return \DBookSecurityClient\Model\Product
      */
     public function setTo ($p_to)
     {
@@ -187,7 +187,7 @@ class Product
      * @param string $p_type
      * @param string $p_group
      * 
-     * @return \DBookSecurity\Client\Model\Product
+     * @return \DBookSecurityClient\Model\Product
      */
     public function setType ($p_type, $p_group = null)
     {
@@ -217,7 +217,7 @@ class Product
      * 
      * @param number $p_tokens
      * 
-     * @return \DBookSecurity\Client\Model\Product
+     * @return \DBookSecurityClient\Model\Product
      */
     public function setTokens ($p_tokens)
     {

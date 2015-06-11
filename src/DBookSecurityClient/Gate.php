@@ -1,11 +1,11 @@
 <?php
-namespace DBookSecurity;
+namespace DBookSecurityClient;
 
-use DBookSecurity\Constants;
+use DBookSecurityClient\Constants;
 use DBookSecurity\DBookSecurityException;
 use DBookSecurity\ErrorCodes;
-use DBookSecurity\Client\Model\User;
-use DBookSecurity\Client\Model\Product;
+use DBookSecurityClient\Model\User;
+use DBookSecurityClient\Model\Product;
 
 /**
  * Mais class, the Client
@@ -13,7 +13,7 @@ use DBookSecurity\Client\Model\Product;
  * @author jérôme klam <jerome.klam@deboeck.com>
  *
  */
-class DBookSecurityClient
+class Gate
 {
 
     /**
@@ -24,13 +24,13 @@ class DBookSecurityClient
 
     /**
      * Auth
-     * @var DBookSecurity\Client\AuthentificationInterface
+     * @var DBookSecurityClient\AuthentificationInterface
      */
     protected static $_authentification = false;
 
     /**
      * Auth
-     * @var DBookSecurity\Client\AuthorizationInterface
+     * @var DBookSecurityClient\AuthorizationInterface
      */
     protected static $_authorization = false;
 
@@ -197,13 +197,13 @@ class DBookSecurityClient
     /**
      * Set Authentification API
      * 
-     * @param DBookSecurity\Client\AuthentificationInterface $p_client
+     * @param DBookSecurityClient\AuthentificationInterface $p_client
      * 
      * @return \DBookSecurity\DBookSecurityClient
      */
     public function setAuthenticationClient ($p_client)
     {
-        if (!$p_client instanceof \DBookSecurity\Client\AuthentificationInterface) {
+        if (!$p_client instanceof \DBookSecurityClient\AuthentificationInterface) {
             throw new DBookSecurityException('The Authentification interface is wrong !', ErrorCodes::ERROR_WRONG_AUTHENTIFICATION_INTERFACE);
         }
         self::$_authentification = $p_client;
@@ -215,11 +215,11 @@ class DBookSecurityClient
      * 
      * @throws DBookSecurityException
      * 
-     * @return \DBookSecurity\DBookSecurity\Client\AuthentificationInterface
+     * @return \DBookSecurity\DBookSecurityClient\AuthentificationInterface
      */
     public function getAuthenticationClient ()
     {
-        if (self::$_authentification instanceof \DBookSecurity\Client\AuthentificationInterface) {
+        if (self::$_authentification instanceof \DBookSecurityClient\AuthentificationInterface) {
             return self::$_authentification;
         }
         throw new DBookSecurityException('The Authentification interface is wrong !', ErrorCodes::ERROR_WRONG_AUTHENTIFICATION_INTERFACE);
@@ -228,13 +228,13 @@ class DBookSecurityClient
     /**
      * Set Authorization API
      * 
-     * @param DBookSecurity\Client\AuthorizationInterface $p_client
+     * @param DBookSecurityClient\AuthorizationInterface $p_client
      * 
      * @return \DBookSecurity\DBookSecurityClient
      */
     public function setAuthorizationClient ($p_client)
     {
-        if (!$p_client instanceof \DBookSecurity\Client\AuthorizationInterface) {
+        if (!$p_client instanceof \DBookSecurityClient\AuthorizationInterface) {
             throw new DBookSecurityException('The Authorization interface is wrong !', ErrorCodes::ERROR_WRONG_AUTHORIZATION_INTERFACE);
         }
         self::$_authorization = $p_client;
@@ -246,11 +246,11 @@ class DBookSecurityClient
      * 
      * @throws DBookSecurityException
      * 
-     * @return \DBookSecurity\DBookSecurity\Client\AuthorizationInterface
+     * @return \DBookSecurity\DBookSecurityClient\AuthorizationInterface
      */
     public function getAuthorizationClient ()
     {
-        if (self::$_authorization instanceof \DBookSecurity\Client\AuthorizationInterface) {
+        if (self::$_authorization instanceof \DBookSecurityClient\AuthorizationInterface) {
             return self::$_authorization;
         }
         throw new DBookSecurityException('The Authorization interface is wrong !', ErrorCodes::ERROR_WRONG_AUTHORIZATION_INTERFACE);
@@ -333,13 +333,13 @@ class DBookSecurityClient
      *
      * @return \DBookSecurity\DBookSecurityClient
      */
-    public function loginByEmailAndPassword ($p_email, $p_password, $p_autoLogin = false,
+    public function signinByLoginAndPassword ($p_email, $p_password, $p_autoLogin = false,
                                              $p_redirectMode = Constants::REDIRECT_TO_HOME,
                                              $p_redirectOnError = Constants::REDIRECT_NONE)
     {
         try {
             $client = $this->getAuthenticationClient();
-            $result = $client->loginByEmailAndPassword($p_email, $p_password, $p_autoLogin);
+            $result = $client->signinByLoginAndPassword($p_email, $p_password, $p_autoLogin);
             if (!$result) {
                 // Need to send error...
                 $this->redirectTo($p_redirectOnError);

@@ -1,16 +1,16 @@
 <?php
-namespace DBookSecurity\Client\CDSSO;
+namespace DBookSecurityClient\SSO;
 
-use DBookSecurity\Constants AS DBCST;
-use DBookSecurity\Client\Model\User;
-use DBookSecurity\Client\Model\Product;
+use DBookSecurityClient\Constants AS DBCST;
+use DBookSecurityClient\Model\User;
+use DBookSecurityClient\Model\Product;
 
 /**
  *
  * @author jérôme klam <jerome.klam@deboeck.com>
  *
  */
-class CDSSOClient implements \DBookSecurity\Client\AuthentificationInterface, \DBookSecurity\Client\AuthorizationInterface
+class Client implements \DBookSecurityClient\AuthentificationInterface, \DBookSecurityClient\AuthorizationInterface
 {
 
     /**
@@ -252,6 +252,29 @@ class CDSSOClient implements \DBookSecurity\Client\AuthentificationInterface, \D
      *
      * @param string $p_response
      */
+    protected function parseUser ($p_response)
+    {
+        $this->userinfo = false;
+        $arr            = false;
+        //
+        $result = json_decode($p_response);
+        if (is_array($result)) {
+            $arr = $result;
+        } else {
+            if (is_object($result)) {
+                $arr = (array)$result;
+            }
+        }
+        if ($arr !== false) {
+            $this->userinfo = new User($arr);
+        }
+    }
+
+    /**
+     * Set user info from user XML
+     *
+     * @param string $p_response
+     */
     protected function parseInfo ($p_response)
     {
         $this->userinfo = false;
@@ -414,7 +437,7 @@ class CDSSOClient implements \DBookSecurity\Client\AuthentificationInterface, \D
             list($ret, $body) = $this->apiCallPost('user');
             switch ($ret) {
                 case 200:
-                    $this->parseInfo($body);
+                    $this->parseUser($body);
                     break;
                 case 401:
                     if ($this->pass401) {
@@ -432,5 +455,27 @@ class CDSSOClient implements \DBookSecurity\Client\AuthentificationInterface, \D
         }
         return $this->userinfo;
     }
-
+    /**
+     * Try to get a token per product
+     *
+     * @param array $p_products
+     *
+     * @return array
+     */
+    public function takeToken ($p_products)
+    {
+        
+    }
+    
+    /**
+     * Free products tokens
+     *
+     * @param array  $p_products
+     *
+     * @return boolean
+    */
+    public function freeToken ($p_products)
+    {
+        
+    }
 }

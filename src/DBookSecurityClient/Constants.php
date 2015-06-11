@@ -1,5 +1,5 @@
 <?php
-namespace DBookSecurity;
+namespace DBookSecurityClient;
 
 /**
  * NameSpace Constants

@@ -1,8 +1,8 @@
 <?php
-namespace DBookSecurity\Client\Model;
+namespace DBookSecurityClient\Model;
 
 use DBookSecurity\Constants AS DBCST;
-use DBookSecurity\Client\Model\Product;
+use DBookSecurityClient\Model\Product;
 
 /**
  *
@@ -61,11 +61,34 @@ class User
     protected $products = array();
 
     /**
+     * Constructor
+     * 
+     * @param array $p_datas
+     */
+    public function __construct ($p_datas = array())
+    {
+        if (is_array($p_datas) && count($p_datas) > 0) {
+            if (array_key_exists('id', $p_datas)) {
+                $this->setId($p_datas['id']);
+            }
+            if (array_key_exists('title', $p_datas)) {
+                $this->setTitle($p_datas['title']);
+            }
+            if (array_key_exists('first_name', $p_datas)) {
+                $this->setFirstname($p_datas['first_name']);
+            }
+            if (array_key_exists('lest_name', $p_datas)) {
+                $this->setLastname($p_datas['lest_name']);
+            }
+        }
+    }
+
+    /**
      * Id setter
      * 
      * @param string $p_id
      * 
-     * @return \DBookSecurity\Client\Model\User
+     * @return \DBookSecurityClient\Model\User
      */
     public function setId ($p_id)
     {
@@ -88,7 +111,7 @@ class User
      * 
      * @param string $p_login
      * 
-     * @return \DBookSecurity\Client\Model\User
+     * @return \DBookSecurityClient\Model\User
      */
     public function setLogin ($p_login)
     {
@@ -111,7 +134,7 @@ class User
      * 
      * @param string $p_paswd
      * 
-     * @return \DBookSecurity\Client\Model\User
+     * @return \DBookSecurityClient\Model\User
      */
     public function setPassword ($p_paswd)
     {
@@ -134,7 +157,7 @@ class User
      * 
      * @param string $p_title
      * 
-     * @return \DBookSecurity\Client\Model\User
+     * @return \DBookSecurityClient\Model\User
      */
     public function setTitle ($p_title)
     {
@@ -157,7 +180,7 @@ class User
      * 
      * @param string $p_firstname
      * 
-     * @return \DBookSecurity\Client\Model\User
+     * @return \DBookSecurityClient\Model\User
      */
     public function setFirstname ($p_firstname)
     {
@@ -180,7 +203,7 @@ class User
      * 
      * @param string $p_lastname
      * 
-     * @return \DBookSecurity\Client\Model\User
+     * @return \DBookSecurityClient\Model\User
      */
     public function setLastname ($p_lastname)
     {
@@ -203,7 +226,7 @@ class User
      * 
      * @param string $p_email
      * 
-     * @return \DBookSecurity\Client\Model\User
+     * @return \DBookSecurityClient\Model\User
      */
     public function setEmail ($p_email)
     {
@@ -224,7 +247,7 @@ class User
     /**
      * Flush products
      * 
-     * @return \DBookSecurity\Client\Model\User
+     * @return \DBookSecurityClient\Model\User
      */
     public function flushProducts ()
     {
@@ -247,7 +270,7 @@ class User
      * 
      * @param Product $p_product
      * 
-     * @return \DBookSecurity\Client\Model\User
+     * @return \DBookSecurityClient\Model\User
      */
     public function addProduct (Product $p_product)
     {

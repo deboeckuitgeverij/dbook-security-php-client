@@ -1,7 +1,7 @@
 <?php
-namespace DBookSecurity\Client;
+namespace DBookSecurityClient;
 
-use DBookSecurity\Constants;
+use DBookSecurityClient\Constants;
 
 /**
  * 

@@ -25,13 +25,13 @@ class Client implements \DBookSecurityClient\AuthentificationInterface, \DBookSe
     /**
      * Pass 401 http response of the server to the client
      */
-    public $pass401=false;
+    public $pass401 = false;
 
     /**
      * Url of SSO server
      * @var string
      */
-    public $url = "http://dev-api-dbook-security.deboeck.com/";
+    public $url = "http://::env::api-dbook-security.deboeck.com/";
     
     /**
      * My identifier, given by SSO provider.
@@ -74,6 +74,28 @@ class Client implements \DBookSecurityClient\AuthentificationInterface, \DBookSe
      * @var string
      */
     protected $ip = null;
+
+    /**
+     * Default environment
+     * @var string
+     */
+    protected $env = DBCST::ENV_DEV;
+
+    /**
+     * Field to exclude from query on redirect
+     * @var array
+     */
+    protected $exclude_from_uri = array();
+
+    /**
+     * Get url
+     * 
+     * @return string
+     */
+    protected function getUrl ()
+    {
+        return str_replace('::env::', $this->env, rtrim($this->url, '/'));
+    }
 
     /**
      * Create hmach string
@@ -139,6 +161,11 @@ class Client implements \DBookSecurityClient\AuthentificationInterface, \DBookSe
         if (array_key_exists(self::LOGOUT_FIELD, $fields)) {
             unset($fields[self::LOGOUT_FIELD]);
         }
+        foreach ($this->exclude_from_uri as $key) {
+            if (array_key_exists($key, $fields)) {
+                unset($fields[$key]);
+            }
+        }
         $url    = $url . $parts['path'];
         $params = http_build_query(array_merge($fields, $p_datas), '', '&');
         if ($params !== '') {
@@ -156,16 +183,16 @@ class Client implements \DBookSecurityClient\AuthentificationInterface, \DBookSe
      */
     protected function apiCallGet ($p_call, $p_datas = array(), $p_statusCode = null)
     {
-        $url  = rtrim($this->url, '/');
+        $url  = $this->getUrl();
         $call = '';
         $API  = array();
         switch (strtoupper($p_call)) {
             case 'CDSSO':
-                $API = $this->hmacCreate($p_datas);
+                $API  = $this->hmacCreate($p_datas);
                 $call = '/cdsso';
                 break;
             case 'ATTACH':
-                $API = $this->hmacCreate($p_datas);
+                $API  = $this->hmacCreate($p_datas);
                 $call = '/attach';
                 break;
             default:
@@ -192,20 +219,20 @@ class Client implements \DBookSecurityClient\AuthentificationInterface, \DBookSe
      */
     protected function apiCallPost ($p_call, $p_datas = array())
     {
-        $url  = rtrim($this->url, '/');
+        $url  = $this->getUrl();
         $call = '';
         $API  = array();
         switch (strtoupper($p_call)) {
             case 'USER':
-                $API = $this->hmacCreate($p_datas);
+                $API  = $this->hmacCreate($p_datas);
                 $call = '/user';
                 break;
             case 'LOGIN':
-                $API = $this->hmacCreate($p_datas);
+                $API  = $this->hmacCreate($p_datas);
                 $call = '/login';
                 break;
             case 'LOGOUT':
-                $API = $this->hmacCreate($p_datas);
+                $API  = $this->hmacCreate($p_datas);
                 $call = '/logout';
                 break;
             default:
@@ -296,8 +323,9 @@ class Client implements \DBookSecurityClient\AuthentificationInterface, \DBookSe
      * @param string  $p_secret
      * @param string  $p_ip
      * @param boolean $p_auto_attach
+     * @param string  $p_env
      */
-    public function __construct ($p_broker=null, $p_secret=null, $p_ip=null, $p_auto_attach=true)
+    public function __construct ($p_broker=null, $p_secret=null, $p_ip=null, $p_auto_attach=true, $p_env=DBCST::ENV_DEV)
     {
         session_start();
         if ($p_broker !== null) {
@@ -312,16 +340,30 @@ class Client implements \DBookSecurityClient\AuthentificationInterface, \DBookSe
         if (isset($_COOKIE[self::TOKEN_NAME])) {
             $this->sessionToken = $_COOKIE[self::TOKEN_NAME];
         }
+        $this->env = $p_env;
         if (!isset($_COOKIE[self::CDSSOID_NAME])) {
             if (isset($_GET[self::CDSSOID_FIELD])) {
                 setcookie(self::CDSSOID_NAME, $_GET[self::CDSSOID_FIELD]);
             } else {
-                $uri = $this->getCurrentUrl(array(self::CDSSOID_FIELD => ':CDSSOID:'));
+                $uri  = $this->getCurrentUrl(array(self::CDSSOID_FIELD => ':CDSSOID:'));
                 $data = array('redirect_uri' => $uri);
                 $this->apiCallGet('cdsso', $data, 307);
             }
         }
         $this->attach($p_auto_attach);
+    }
+
+    /**
+     * Exclude a field from redirect uri
+     * 
+     * @param string $p_field
+     * 
+     * @return \DBookSecurityClient\SSO\Client
+     */
+    public function addToExcludeFromUri ($p_field)
+    {
+        $this->exclude_from_uri[] = $p_field;
+        return $this;
     }
 
     /**
@@ -332,7 +374,7 @@ class Client implements \DBookSecurityClient\AuthentificationInterface, \DBookSe
     public function attach ($p_auto_attach=true)
     {
         if ($p_auto_attach && !isset($this->sessionToken)) {
-            $uri = $this->getCurrentUrl();
+            $uri  = $this->getCurrentUrl();
             $data = array('token'=>$this->getSessionToken(), 'redirect_uri' => $uri);
             $this->apiCallGet('attach', $data, 307);
             exit;
@@ -402,7 +444,7 @@ class Client implements \DBookSecurityClient\AuthentificationInterface, \DBookSe
                 break;
         }
     }
-    
+
     /**
      * Logout
      * 
@@ -455,6 +497,7 @@ class Client implements \DBookSecurityClient\AuthentificationInterface, \DBookSe
         }
         return $this->userinfo;
     }
+
     /**
      * Try to get a token per product
      *
@@ -466,7 +509,7 @@ class Client implements \DBookSecurityClient\AuthentificationInterface, \DBookSe
     {
         
     }
-    
+
     /**
      * Free products tokens
      *
@@ -478,4 +521,5 @@ class Client implements \DBookSecurityClient\AuthentificationInterface, \DBookSe
     {
         
     }
+
 }

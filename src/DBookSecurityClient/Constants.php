@@ -11,6 +11,15 @@ class Constants
 {
 
     /**
+     * Environements
+     * @var string
+     */
+    const ENV_DEV     = 'dev-';
+    const ENV_TEST    = 'test-';
+    const ENV_PREPROD = 'preprod-';
+    const ENV_PROD    = '';
+
+    /**
      * Redirect constants
      * @var string
      */

@@ -1,7 +1,7 @@
 <?php
 namespace DBookSecurity\Client;
 
-use DBookSecurity\Constants;
+use DBookSecurity\Constants AS DBCST;;
 
 /**
  * 
@@ -18,18 +18,18 @@ interface AuthentificationInterface
      * 
      * @return boolean
      */
-    public function checkLoggedIn ();
+    public function checkLoggedIn ($p_redirectMode = DBCST::REDIRECT_NONE);
 
     /**
      * login with email and password
      *
-     * @param string  $p_email
+     * @param string  $p_login
      * @param string  $p_password
      * @param boolean $p_autoLogin
      *
      * @return boolean
      */
-    public function loginByEmailAndPassword ($p_email, $p_password, $p_autoLogin = false);
+    public function signinByLoginAndPassword ($p_login, $p_password, $p_autoLogin = false);
 
     /**
      * Logout

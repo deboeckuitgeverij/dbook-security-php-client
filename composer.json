@@ -8,12 +8,19 @@
     },
     "authors": [
         {
-            "name": "Jérôme KLAM",
-            "email": "jerome.klam@deboeck.com"
+            "name": "Cédric Bernier",
+            "email": "cedric.bernier@dbit.lu",
+            "role": "Developer"
         },
         {
-            "name": "PawRugg",
-            "email": "jeromeklam@free.fr"
+            "name": "Marc Hendrix",
+            "email": "marc.hendrix@dbit.lu",
+            "role": "Responsable projet"
+        },
+        {
+            "name": "Jérôme Klam",
+            "email": "jerome.klam@dbit.lu",
+            "role": "Developer"
         }
     ],
     "require": {

@@ -2,23 +2,19 @@ dbook-security-php-client
 =========================
 ---
 
-# TEST
-
 # Summary
 
-A PHP Client which provides access to DeBoeck SSO server.
+A PHP Client which provides access to DeBoeck SSO server and API functions.
 
 It is the basic version which can be combined with SAML2.0 protocol if needed.
 An OAuth2.0 access is also available.
 
 A basic configuration needs :
-* The CDSSO server url environment :
-    * https://test-dbook-security.deboeck.com/cdsso/V1/cdsso for test
-    * https://preprod-dbook-security.deboeck.com/cdsso/V1/cdsso for pre-production
-    * https://dbook-security.deboeck.com/cdsso/V1/cdsso for production
-* The broker code
-* The broker password
+* The CDSSO server environment : test / pre-production / production
+* A broker key
+* A broker secret
 
+To ask for a broker, please go to this url : https://dbook-security.deboeck.com/help/broker
 All brokers under the same SSO group will be automaticaly logged-in / logged-out.
 Available for the browser session only.
 

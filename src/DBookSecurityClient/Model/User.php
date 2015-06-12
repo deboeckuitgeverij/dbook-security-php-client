@@ -77,8 +77,8 @@ class User
             if (array_key_exists('first_name', $p_datas)) {
                 $this->setFirstname($p_datas['first_name']);
             }
-            if (array_key_exists('lest_name', $p_datas)) {
-                $this->setLastname($p_datas['lest_name']);
+            if (array_key_exists('last_name', $p_datas)) {
+                $this->setLastname($p_datas['last_name']);
             }
         }
     }

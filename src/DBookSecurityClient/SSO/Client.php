@@ -31,8 +31,8 @@ class Client implements \DBookSecurityClient\AuthentificationInterface, \DBookSe
      * Url of SSO server
      * @var string
      */
-    public $url = "http://::env::api-dbook-security.deboeck.com/";
-    
+    public $url = "http://::env::dbook-security.deboeck.com/api/";
+
     /**
      * My identifier, given by SSO provider.
      * @var string
@@ -260,12 +260,12 @@ class Client implements \DBookSecurityClient\AuthentificationInterface, \DBookSe
         $ret  = curl_getinfo($curl, CURLINFO_HTTP_CODE);
         if (curl_errno($curl) != 0) {
             echo '<h1>Error with request</h1><pre>' . print_r($body, true) . '</pre>';
-            throw new Exception("SSO failure: HTTP request to server failed. " . curl_error($curl));
+            throw new \Exception("SSO failure: HTTP request to server failed. " . curl_error($curl));
         }
         if ($body != '') {
             if (json_decode($body) === false || json_decode($body) === null) {
                 echo '<h1>Error with Body</h1><pre>' . print_r($body, true) . '</pre>';
-                throw new Exception("SSO failure: HTTP request to server failed !");
+                throw new \Exception("SSO failure: HTTP request to server failed !");
             }
         } else {
             $body = null;
@@ -488,7 +488,7 @@ class Client implements \DBookSecurityClient\AuthentificationInterface, \DBookSe
                     $this->userinfo = false;
                     break;
                 case 500:
-                    throw new Exception("SSO failure: The server responded with a $ret status" . (!empty($body) ? ': "' . substr(str_replace("\n", " ", trim(strip_tags($body))), 0, 256) .'".' : '.'));
+                    throw new \Exception("SSO failure: The server responded with a $ret status" . (!empty($body) ? ': "' . substr(str_replace("\n", " ", trim(strip_tags($body))), 0, 256) .'".' : '.'));
                 default:
                     // session destroyed, expired, ...
                     $this->reload();

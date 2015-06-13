@@ -11,6 +11,23 @@ class Constants
 {
 
     /**
+     * Gates
+     * @var string
+     */
+    const GATE_NONE   = false;
+    const GATE_SSO    = 'sso';
+    const GATE_OAUTH2 = 'oauth2';
+
+    /**
+     * methods
+     * @var string
+     */
+    const METHOD_GET    = 'GET';
+    const METHOD_POST   = 'POST';
+    const METHOD_PUT    = 'PUT';
+    const METHOD_DELETE = 'DELETE';
+
+    /**
      * Environements
      * @var string
      */

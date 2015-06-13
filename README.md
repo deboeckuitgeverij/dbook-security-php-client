@@ -14,7 +14,7 @@ A basic configuration needs :
 * A broker key
 * A broker secret
 
-To ask for a broker, please go to this url : https://dbook-security.deboeck.com/help/broker
+To ask for a broker, please go to this url : https://dbook-security.deboeck.com/help/broker/ask
 All brokers under the same SSO group will be automaticaly logged-in / logged-out.
 Available for the browser session only.
 
@@ -32,6 +32,10 @@ Available for the browser session only.
 ```
 
 # Versions
+
+* 1.1.1 - 14/06/2015
+    * New architecture
+    * OAuth2 Gate
 
 * 1.1.0 - 08/04/2015
     * Objects as models

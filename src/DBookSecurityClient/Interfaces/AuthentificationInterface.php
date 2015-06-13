@@ -1,5 +1,5 @@
 <?php
-namespace DBookSecurityClient;
+namespace DBookSecurityClient\Interfaces;
 
 use DBookSecurityClient\Constants AS DBCST;;
 

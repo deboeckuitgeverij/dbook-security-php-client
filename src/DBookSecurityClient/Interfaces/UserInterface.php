@@ -1,8 +1,8 @@
 <?php
-namespace DBookSecurityClient;
+namespace DBookSecurityClient\Interfaces;
 
 use DBookSecurityClient\Constants;
-use DBookSecurityClient\Model\User;
+use DBookSecurityClient\Models\User;
 
 /**
  * 
@@ -17,7 +17,7 @@ interface UserInterface
      * 
      * @param string $p_id
      * 
-     * @return DBookSecurityClient\Model\User
+     * @return DBookSecurityClient\Models\User
      */
     public function getUserById ($p_id);
 
@@ -26,7 +26,7 @@ interface UserInterface
      *
      * @param string  $p_token
      *
-     * @return DBookSecurityClient\Model\User
+     * @return DBookSecurityClient\Models\User
      */
     public function getUserByOauth2Token ($p_token);
 

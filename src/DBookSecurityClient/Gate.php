@@ -1,14 +1,14 @@
 <?php
 namespace DBookSecurityClient;
 
-use DBookSecurityClient\Constants;
+use DBookSecurityClient\Constants as DBCST;
 use DBookSecurity\DBookSecurityException;
 use DBookSecurity\ErrorCodes;
-use DBookSecurityClient\Model\User;
-use DBookSecurityClient\Model\Product;
+use DBookSecurityClient\Models\User;
+use DBookSecurityClient\Models\Product;
 
 /**
- * Mais class, the Client
+ * Main class, the Client
  *
  * @author jérôme klam <jerome.klam@deboeck.com>
  *
@@ -17,22 +17,22 @@ class Gate
 {
 
     /**
-     * Client
-     * @var DBookSecurity\DBookSecurityClient
+     * Instance
+     * @var DBookSecurityClient\Gate
      */
     protected static $_instance = false;
 
     /**
-     * Auth
-     * @var DBookSecurityClient\AuthentificationInterface
+     * Gate Client
+     * @var DBookSecurityClient\Gate\...
      */
-    protected static $_authentification = false;
+    protected $gate = null;
 
     /**
-     * Auth
-     * @var DBookSecurityClient\AuthorizationInterface
+     * api
+     * @var DBookSecurityClient\Api\Client
      */
-    protected static $_authorization = false;
+    protected $api = null;
 
     /**
      * Application Name
@@ -71,30 +71,60 @@ class Gate
     protected $debug = false;
 
     /**
+     * Redirection uri
+     * @var string
+     */
+    protected $uri = null;
+
+    /**
      * Not authorized.... use ::getInstance()
      * 
+     * @param string  $p_broker_key
+     * @param string  $p_broker_secret
+     * @param string  $p_gate_type
+     * @param string  $p_env
      * @param boolean $p_debug
      */
-    protected function __construct ($p_debug = false)
+    protected function __construct ($p_broker_key, $p_broker_secret, $p_gate_type, $p_env, $p_debug)
     {
         $this->debug = false;
         if ($p_debug === true || $p_debug === '1' || $p_debug === 1) {
             $this->debug = true;
+        }
+        switch ($p_gate_type) {
+            case DBCST::GATE_SSO:
+                $this->gate = new \DBookSecurityClient\Gate\SSO($p_broker_key, $p_broker_secret, null, $p_env);
+                break;
+            case DBCST::GATE_OAUTH2:
+                $this->gate = new \DBookSecurityClient\Gate\OAuth2($p_broker_key, $p_broker_secret, null, $p_env);
+                break;
+        }
+        $this->api = new \DBookSecurityClient\Api\Client($p_broker_key, $p_broker_secret, null, $p_env);
+        if ($this->gate instanceof \DBookSecurityClient\Gate\SSO) {
+            $this->api
+                ->addCookie('DBSV2APP', $this->gate->getSessionToken())
+                ->addCookie('DBSV2CDSSO', $this->gate->getCDSSOID())
+            ;
         }
     }
 
     /**
      * Get Instance
      * 
+     * @param string  $p_broker_key
+     * @param string  $p_broker_secret
+     * @param boolean $p_with_sso
      * @param boolean $p_debug
      * 
      * @return \DBookSecurity\DBookSecurityClient
      */
-    public static function getInstance ($p_debug = false)
+    public static function getInstance ($p_broker_key, $p_broker_secret, $p_gate_type = DBCST::GATE_NONE, 
+                                        $p_env = DBCST::ENV_DEV, $p_debug = false)
     {
         if (self::$_instance === false) {
-            self::$_instance = new self($p_debug);
+            self::$_instance = new self($p_broker_key, $p_broker_secret, $p_gate_type, $p_env, $p_debug);
         }
+        
         return self::$_instance;
     }
 
@@ -108,6 +138,7 @@ class Gate
     public function setAppCode ($p_code)
     {
         $this->appCode = $p_code;
+        
         return $this;
     }
 
@@ -121,6 +152,7 @@ class Gate
     public function setAppName ($p_name)
     {
         $this->appName = $p_name;
+        
         return $this;
     }
 
@@ -134,6 +166,7 @@ class Gate
     public function setLoginUrl ($p_url)
     {
         $this->loginUrl = $p_url;
+        
         return $this;
     }
 
@@ -147,6 +180,7 @@ class Gate
     public function setHomeUrl ($p_url)
     {
         $this->homeUrl = $p_url;
+        
         return $this;
     }
 
@@ -163,6 +197,7 @@ class Gate
         if ($p_redirect === true) {
             $this->redirectToLogin = true;
         }
+        
         return $this;
     }
 
@@ -182,78 +217,16 @@ class Gate
      *
      * @param string $p_redirectMode
      */
-    public function redirectTo ($p_redirectMode = Constants::REDIRECT_NONE)
+    public function redirectTo ($p_redirectMode = DBCST::REDIRECT_NONE)
     {
         switch ($p_redirectMode) {
-            case Constants::REDIRECT_TO_LOGIN:
+            case DBCST::REDIRECT_TO_LOGIN:
                 self::redirectToUrl($this->loginUrl);
                 break;
-            case Constants::REDIRECT_TO_HOME:
+            case DBCST::REDIRECT_TO_HOME:
                 self::redirectToUrl($this->homeUrl);
                 break;
         }
-    }
-
-    /**
-     * Set Authentification API
-     * 
-     * @param DBookSecurityClient\AuthentificationInterface $p_client
-     * 
-     * @return \DBookSecurity\DBookSecurityClient
-     */
-    public function setAuthenticationClient ($p_client)
-    {
-        if (!$p_client instanceof \DBookSecurityClient\AuthentificationInterface) {
-            throw new DBookSecurityException('The Authentification interface is wrong !', ErrorCodes::ERROR_WRONG_AUTHENTIFICATION_INTERFACE);
-        }
-        self::$_authentification = $p_client;
-        return $this;
-    }
-
-    /**
-     * Get connexion interface
-     * 
-     * @throws DBookSecurityException
-     * 
-     * @return \DBookSecurity\DBookSecurityClient\AuthentificationInterface
-     */
-    public function getAuthenticationClient ()
-    {
-        if (self::$_authentification instanceof \DBookSecurityClient\AuthentificationInterface) {
-            return self::$_authentification;
-        }
-        throw new DBookSecurityException('The Authentification interface is wrong !', ErrorCodes::ERROR_WRONG_AUTHENTIFICATION_INTERFACE);
-    }
-
-    /**
-     * Set Authorization API
-     * 
-     * @param DBookSecurityClient\AuthorizationInterface $p_client
-     * 
-     * @return \DBookSecurity\DBookSecurityClient
-     */
-    public function setAuthorizationClient ($p_client)
-    {
-        if (!$p_client instanceof \DBookSecurityClient\AuthorizationInterface) {
-            throw new DBookSecurityException('The Authorization interface is wrong !', ErrorCodes::ERROR_WRONG_AUTHORIZATION_INTERFACE);
-        }
-        self::$_authorization = $p_client;
-        return $this;
-    }
-
-    /**
-     * Get Authorization interface
-     * 
-     * @throws DBookSecurityException
-     * 
-     * @return \DBookSecurity\DBookSecurityClient\AuthorizationInterface
-     */
-    public function getAuthorizationClient ()
-    {
-        if (self::$_authorization instanceof \DBookSecurityClient\AuthorizationInterface) {
-            return self::$_authorization;
-        }
-        throw new DBookSecurityException('The Authorization interface is wrong !', ErrorCodes::ERROR_WRONG_AUTHORIZATION_INTERFACE);
     }
 
     /**
@@ -263,18 +236,18 @@ class Gate
      *
      * @return User|boolean
      */
-    public function getUser ($p_redirectOnError = Constants::REDIRECT_NONE)
+    public function getUser ($p_redirectOnError = DBCST::REDIRECT_NONE)
     {
         $user = false;
         try {
-            $client = $this->getAuthenticationClient();
-            $user   = $client->getUser();
-            if ($user === false) {
+            list($status, $user) = $this->api->getUser();
+            if ($status != 200) {
                 $this->redirectTo($p_redirectOnError);
             }
         } catch (\Exception $ex) {
             $this->redirectTo($p_redirectOnError);
         }
+        
         return $user;
     }
 
@@ -286,8 +259,8 @@ class Gate
      *
      * @return \DBookSecurity\DBookSecurityClient
      */
-    public function checkLoggedIn ($p_redirectOnError = Constants::REDIRECT_NONE,
-                                   $p_redirectOnSuccess = Constants::REDIRECT_NONE)
+    public function checkLoggedIn ($p_redirectOnError = DBCST::REDIRECT_NONE,
+                                   $p_redirectOnSuccess = DBCST::REDIRECT_NONE)
     {
         try {
             $client = $this->getAuthenticationClient();
@@ -296,11 +269,13 @@ class Gate
                 $this->redirectTo($p_redirectOnError);
             } else {
                 $this->redirectTo($p_redirectOnSuccess);
+                
                 return true;
             }
         } catch (\Exception $ex) {
             $this->redirectTo($p_redirectOnError);
         }
+        
         return false;
     }
 
@@ -311,14 +286,16 @@ class Gate
      * 
      * @return boolean
      */
-    public function isAuthenticated ($p_redirectOnError = Constants::REDIRECT_NONE)
+    public function isAuthenticated ($p_redirectOnError = DBCST::REDIRECT_NONE)
     {
         try {
             $client = $this->getAuthenticationClient();
+            
             return $client->checkLoggedIn();
         } catch (\Exception $ex) {
             $this->redirectTo($p_redirectOnError);
         }
+        
         return false;
     }
 
@@ -334,22 +311,23 @@ class Gate
      * @return \DBookSecurity\DBookSecurityClient
      */
     public function signinByLoginAndPassword ($p_email, $p_password, $p_autoLogin = false,
-                                             $p_redirectMode = Constants::REDIRECT_TO_HOME,
-                                             $p_redirectOnError = Constants::REDIRECT_NONE)
+                                             $p_redirectMode = DBCST::REDIRECT_NONE,
+                                             $p_redirectOnError = DBCST::REDIRECT_NONE)
     {
         try {
-            $client = $this->getAuthenticationClient();
-            $result = $client->signinByLoginAndPassword($p_email, $p_password, $p_autoLogin);
-            if (!$result) {
+            list($status, $result) = $this->api->signinByLoginAndPassword($p_email, $p_password, $p_autoLogin);
+            if ($status != 200) {
                 // Need to send error...
                 $this->redirectTo($p_redirectOnError);
             } else {
                 $this->redirectTo($p_redirectMode);
+                
                 return true;
             }
         } catch (\Exception $ex) {
             $this->redirectTo($p_redirectOnError);
         }
+        
         return false;
     }
 
@@ -361,14 +339,14 @@ class Gate
      *
      * @return \DBookSecurity\DBookSecurityClient
      */
-    public function logout ($p_redirectMode = Constants::REDIRECT_TO_LOGIN,
-                            $p_redirectOnError = Constants::REDIRECT_NONE)
+    public function logout ($p_redirectMode = DBCST::REDIRECT_NONE,
+                            $p_redirectOnError = DBCST::REDIRECT_NONE)
     {
         try {
-            $client = $this->getAuthenticationClient();
-            $result = $client->completeLogout();
-            if ($result) {
+            list($status, $result) = $this->api->logout();
+            if ($status == 200) {
                 $this->redirectTo($p_redirectMode);
+                
                 return true;
             } else {
                 $this->redirectTo($p_redirectOnError);
@@ -376,6 +354,7 @@ class Gate
         } catch (\Exception $ex) {
             $this->redirectTo($p_redirectOnError);
         }
+        
         return false;
     }
 
@@ -387,14 +366,14 @@ class Gate
      *
      * @return \DBookSecurity\DBookSecurityClient
      */
-    public function completeLogout ($p_redirectMode = Constants::REDIRECT_TO_LOGIN,
-                                    $p_redirectOnError = Constants::REDIRECT_NONE)
+    public function completeLogout ($p_redirectMode = DBCST::REDIRECT_TO_LOGIN,
+                                    $p_redirectOnError = DBCST::REDIRECT_NONE)
     {
         try {
-            $client = $this->getAuthenticationClient();
-            $result = $client->completeLogout();
-            if ($result) {
+            list($status, $result) = $this->api->completeLogout();
+            if ($status == 200) {
                 $this->redirectTo($p_redirectMode);
+                
                 return true;
             } else {
                 $this->redirectTo($p_redirectOnError);
@@ -402,6 +381,7 @@ class Gate
         } catch (\Exception $ex) {
             $this->redirectTo($p_redirectOnError);
         }
+        
         return false;
     }
 
@@ -413,7 +393,7 @@ class Gate
      * 
      * @return array
      */
-    public function takeToken ($p_products, $p_redirectOnError = Constants::REDIRECT_NONE)
+    public function takeToken ($p_products, $p_redirectOnError = DBCST::REDIRECT_NONE)
     {
         $result = array();
         try {
@@ -433,6 +413,7 @@ class Gate
         } catch (\Exception $ex) {
             $this->redirectTo($p_redirectOnError);
         }
+        
         return $result;
     }
 
@@ -444,13 +425,14 @@ class Gate
      *
      * @return array
      */
-    public function freeToken ($p_products, $p_redirectOnError = Constants::REDIRECT_NONE)
+    public function freeToken ($p_products, $p_redirectOnError = DBCST::REDIRECT_NONE)
     {
         $result = array();
         try {
             $client = $this->getAuthorizationClient();
             $result = $client->freeToken($p_products);
             if ($result !== false) {
+                
                 return true;
             } else {
                 $this->redirectTo($p_redirectOnError);
@@ -458,7 +440,55 @@ class Gate
         } catch (\Exception $ex) {
             $this->redirectTo($p_redirectOnError);
         }
+        
         return false;
+    }
+
+    /**
+     * Set redirect uri
+     *
+     * @param string $p_uri
+     *
+     * @return \DBookSecurityClient\Gate\OAuth2
+     */
+    public function setRedirectUri ($p_uri)
+    {
+        $this->uri = $p_uri;
+        $this->gate->setRedirectUri($p_uri);
+    
+        return $this;
+    }
+
+    /**
+     * Get an authorizationCode for some scopes
+     *
+     * @return string
+     */
+    public function askAuthorizationCode ($p_scopes = array())
+    {
+        $this->gate->askAuthorizationCode($p_scopes);
+    }
+
+    /**
+     * Get an authorizationCode for some scopes
+     *
+     * @return string
+     */
+    public function getAuthorizationCode ()
+    {
+        return $this->gate->getAuthorizationCode();
+    }
+
+    /**
+     * Get an token
+     * 
+     * @param string $p_authorization_code
+     *
+     * @return string
+     */
+    public function getToken ($p_authorization_code)
+    {
+        return $this->api->getOAuth2Token($p_authorization_code, $this->uri);
     }
 
 }

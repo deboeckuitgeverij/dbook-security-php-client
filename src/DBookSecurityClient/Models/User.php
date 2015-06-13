@@ -1,8 +1,8 @@
 <?php
-namespace DBookSecurityClient\Model;
+namespace DBookSecurityClient\Models;
 
 use DBookSecurity\Constants AS DBCST;
-use DBookSecurityClient\Model\Product;
+use DBookSecurityClient\Models\Product;
 
 /**
  *
@@ -88,7 +88,7 @@ class User
      * 
      * @param string $p_id
      * 
-     * @return \DBookSecurityClient\Model\User
+     * @return \DBookSecurityClient\Models\User
      */
     public function setId ($p_id)
     {
@@ -111,7 +111,7 @@ class User
      * 
      * @param string $p_login
      * 
-     * @return \DBookSecurityClient\Model\User
+     * @return \DBookSecurityClient\Models\User
      */
     public function setLogin ($p_login)
     {
@@ -134,7 +134,7 @@ class User
      * 
      * @param string $p_paswd
      * 
-     * @return \DBookSecurityClient\Model\User
+     * @return \DBookSecurityClient\Models\User
      */
     public function setPassword ($p_paswd)
     {
@@ -157,7 +157,7 @@ class User
      * 
      * @param string $p_title
      * 
-     * @return \DBookSecurityClient\Model\User
+     * @return \DBookSecurityClient\Models\User
      */
     public function setTitle ($p_title)
     {
@@ -180,7 +180,7 @@ class User
      * 
      * @param string $p_firstname
      * 
-     * @return \DBookSecurityClient\Model\User
+     * @return \DBookSecurityClient\Models\User
      */
     public function setFirstname ($p_firstname)
     {
@@ -203,7 +203,7 @@ class User
      * 
      * @param string $p_lastname
      * 
-     * @return \DBookSecurityClient\Model\User
+     * @return \DBookSecurityClient\Models\User
      */
     public function setLastname ($p_lastname)
     {
@@ -226,7 +226,7 @@ class User
      * 
      * @param string $p_email
      * 
-     * @return \DBookSecurityClient\Model\User
+     * @return \DBookSecurityClient\Models\User
      */
     public function setEmail ($p_email)
     {
@@ -247,7 +247,7 @@ class User
     /**
      * Flush products
      * 
-     * @return \DBookSecurityClient\Model\User
+     * @return \DBookSecurityClient\Models\User
      */
     public function flushProducts ()
     {
@@ -270,7 +270,7 @@ class User
      * 
      * @param Product $p_product
      * 
-     * @return \DBookSecurityClient\Model\User
+     * @return \DBookSecurityClient\Models\User
      */
     public function addProduct (Product $p_product)
     {

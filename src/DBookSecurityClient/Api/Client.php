@@ -2,47 +2,57 @@
 namespace DBookSecurityClient\Api;
 
 use DBookSecurityClient\Constants AS DBCST;
-use DBookSecurityClient\Model\User;
-use DBookSecurityClient\Model\Product;
+use DBookSecurityClient\Interfaces\AuthentificationInterface;
+use DBookSecurityClient\Interfaces\AuthorizationInterface;
+use DBookSecurityClient\Interfaces\UserInterface;
+use DBookSecurityClient\Models\User;
+use DBookSecurityClient\Models\Product;
 
 /**
- * Helper class for broker of single sign-on
+ * Main Api Client
+ * 
+ * @author jérôme klam <jerome.klam@deboeck.com>
+ * 
+ * 
  */
-class Client implements \DBookSecurityClient\UserInterface
+class Client implements AuthentificationInterface, AuthorizationInterface, UserInterface
 {
 
     /**
-     * methods
+     * Api servers' url
      * @var string
      */
-    const METHOD_GET    = 'GET';
-    const METHOD_POST   = 'POST';
-    const METHOD_PUT    = 'PUT';
-    const METHOD_DELETE = 'DELETE';
+    protected $url = "http://::env::dbook-security.deboeck.com/api/";
 
     /**
-     * Url of SSO server
+     * My identifier, given by DeBoeck.
      * @var string
      */
-    public $url = "http://::env::dbook-security.deboeck.com/api/";
+    protected $broker = null;
 
     /**
-     * My identifier, given by SSO provider.
+     * My secret word, given by DeBoeck.
      * @var string
      */
-    public $broker = null;
-
-    /**
-     * My secret word, given by SSO provider.
-     * @var string
-     */
-    public $secret = null;
+    protected $secret = null;
 
     /**
      * IP forced
      * @var string
      */
     protected $ip = null;
+
+    /**
+     * Cookies
+     * @var array
+     */
+    protected $cookies = array();
+
+    /**
+     * User cache
+     * @var mixed
+     */
+    protected $userinfo = false;
 
     /**
      * Get url
@@ -67,11 +77,56 @@ class Client implements \DBookSecurityClient\UserInterface
         $msgData      = is_array($p_datas) ? http_build_query($p_datas, '', '&') : $p_datas;
         $data         = $iRequestTime . $this->broker . $msgData;
         $serverHash   = hash_hmac('sha256', $data, $this->secret);
+        
         return array (
             'API_ID'   => $this->broker,
             'API_TIME' => $iRequestTime,
             'API_HASH' => $serverHash
         );
+    }
+
+    /**
+     * Flush all cookies
+     */
+    public function flushCookies ()
+    {
+        $this->cookies = array();
+        
+        return $this;
+    }
+
+    /**
+     * Add a Cookie
+     * 
+     * @param string $p_key
+     * @param string $p_value
+     * 
+     * @return \DBookSecurityClient\Api\Client
+     */
+    public function addCookie ($p_key, $p_value)
+    {
+        $this->cookies[$p_key] = $p_value;
+        
+        return $this;
+    }
+
+    /**
+     * Return the cookies' array as header
+     * 
+     * @return string | boolean
+     */
+    protected function getCookiesAsHeader()
+    {
+        $cookies = false;
+        foreach ($this->cookies as $key=>$value)
+        {
+            if ($cookies === false) {
+                $cookies = urlencode($key) . '=' . urlencode($value);
+            } else {
+                $cookies .= ';' . urlencode($key) . '=' . urlencode($value);
+            }
+        }
+        return $cookies;
     }
 
     /**
@@ -81,7 +136,7 @@ class Client implements \DBookSecurityClient\UserInterface
      * @param array  $p_datas
      * @param mixed  $p_statusCode
      */
-    public function apiCall ($p_method = self::METHOD_GET, $p_call, $p_datas = array())
+    public function apiCall ($p_method = DBCST::METHOD_GET, $p_call, $p_datas = array())
     {
         $url  = $this->getUrl();
         $call = '';
@@ -98,7 +153,10 @@ class Client implements \DBookSecurityClient\UserInterface
         $curl = curl_init($url);
         curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
         curl_setopt($curl, CURLOPT_HTTPHEADER, $headers);
-        if ($p_method != self::METHOD_GET) {
+        if (false !== ($cookies = $this->getCookiesAsHeader())) {
+            curl_setopt($curl, CURLOPT_COOKIE, $cookies);
+        }
+        if ($p_method != DBCST::METHOD_GET) {
             curl_setopt($curl, CURLOPT_USERPWD, urlencode($this->broker) . ':' . urlencode($this->secret));
             curl_setopt($curl, CURLOPT_POST, true);
             if (isset($p_datas)) {
@@ -122,6 +180,7 @@ class Client implements \DBookSecurityClient\UserInterface
             $body = null;
         }
         curl_close($curl);
+        
         return array($ret, $body);
     }
 
@@ -136,12 +195,15 @@ class Client implements \DBookSecurityClient\UserInterface
         //
         $result = json_decode($p_response);
         if (is_array($result)) {
+            
             return $result;
         } else {
             if (is_object($result)) {
+                
                 return (array)$result;
             }
         }
+        
         return null;
     }
 
@@ -153,9 +215,11 @@ class Client implements \DBookSecurityClient\UserInterface
      * @param string  $p_ip
      * @param boolean $p_auto_attach
      */
-    public function __construct ($p_broker=null, $p_secret=null, $p_ip=null, $p_auto_attach=true, $p_env=DBCST::ENV_DEV)
+    public function __construct ($p_broker=null, $p_secret=null, $p_ip=null, $p_env=DBCST::ENV_DEV)
     {
-        session_start();
+        if (!session_id()) {
+            session_start();
+        }
         if ($p_broker !== null) {
             $this->broker = $p_broker;
         }
@@ -169,20 +233,134 @@ class Client implements \DBookSecurityClient\UserInterface
     }
 
     /**
+     * Check if user is logged in
+     *
+     * @param string $p_redirectMode
+     *
+     * @return boolean
+     */
+    public function checkLoggedIn ($p_redirectMode = DBCST::REDIRECT_NONE)
+    {
+        $this->getUser();
+        if ($this->userinfo === false) {
+            
+            return false;
+        }
+        
+        return true;
+    }
+
+    /**
+     * login with email and password
+     *
+     * @param string  $p_login
+     * @param string  $p_password
+     * @param boolean $p_autoLogin
+     *
+     * @return boolean
+     */
+    public function signinByLoginAndPassword ($p_login, $p_password, $p_autoLogin = false)
+    {
+        if (!isset($p_login) && isset($_REQUEST['username'])) {
+            $p_login=$_REQUEST['username'];
+        }
+        if (!isset($p_password) && isset($_REQUEST['password'])) {
+            $p_password=$_REQUEST['password'];
+        }
+        list($ret, $body) = $this->apiCall(DBCST::METHOD_POST, 'login', array('login'=>$p_login, 'password'=>$p_password));
+        if ($ret == 200) {
+            
+            return array($ret, $this->parseInfo($body));
+        }
+        
+        return array($ret, $body);
+    }
+
+    /**
+     * Logout
+     *
+     * @return boolean
+     */
+    public function logout ()
+    {
+        list($ret, $body) = $this->apiCall(DBCST::METHOD_POST, 'logout');
+        
+        return array($ret, $this->parseInfo($body));
+    }
+
+    /**
+     * Logout
+     *
+     * @return boolean
+     */
+    public function completeLogout ()
+    {
+        return $this->logout();
+    }
+
+    /**
+     * Get user information.
+     */
+    public function getUser ()
+    {
+        if (!$this->userinfo) {
+            $this->userinfo = false;
+            list($ret, $body) = $this->apiCall(DBCST::METHOD_POST, 'user');
+            if ($ret == 200) {
+                if (false !== ($datas = $this->parseInfo($body))) {
+                    $this->userinfo = new User($datas);
+                } else {
+                    $ret = 500;
+                }
+            }
+        } else {
+            $ret = 200;
+        }
+        
+        return array($ret, $this->userinfo);
+    }
+
+    /**
+     * Try to get a token per product
+     *
+     * @param array $p_products
+     *
+     * @return array
+     */
+    public function takeToken ($p_products)
+    {
+        return false;
+    }
+
+    /**
+     * Free products tokens
+     *
+     * @param array  $p_products
+     *
+     * @return boolean
+     */
+    public function freeToken ($p_products)
+    {
+        return false;
+    }
+
+    /**
      * Try to get a user with it's id
      *
      * @param string $p_id
      *
-     * @return DBookSecurityClient\Model\User
+     * @return DBookSecurityClient\Models\User
      */
     public function getUserById ($p_id)
     {
         list($ret, $body) = $this->apiCall(self::METHOD_GET, '/users/id/' . $p_id);
         if ($ret == 200) {
             if (is_array($arr = $this->parseInfo($body))) {
+                
                 return new User($arr);
             }
         }
+        
         return false;
     }
 
@@ -191,7 +369,7 @@ class Client implements \DBookSecurityClient\UserInterface
      *
      * @param string  $p_token
      *
-     * @return DBookSecurityClient\Model\User
+     * @return DBookSecurityClient\Models\User
     */
     public function getUserByOauth2Token ($p_token)
     {
@@ -201,6 +379,7 @@ class Client implements \DBookSecurityClient\UserInterface
                 return new User($arr);
             }
         }
+        
         return false;
     }
 
@@ -209,7 +388,7 @@ class Client implements \DBookSecurityClient\UserInterface
      *
      * @param string  $p_token
      *
-     * @return DBookSecurityClient\Model\User
+     * @return DBookSecurityClient\Models\User
      */
     public function getOAuth2Token ($p_code, $p_redirect_uri = null)
     {
@@ -219,6 +398,7 @@ class Client implements \DBookSecurityClient\UserInterface
                 return $arr;
             }
         }
+        
         return false;
     }
 

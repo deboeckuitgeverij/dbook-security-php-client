@@ -3,6 +3,7 @@ namespace DBookSecurityClient\Models;
 
 use DBookSecurity\Constants AS DBCST;
 use DBookSecurityClient\Models\Product;
+use DBookSecurityClient\Models\Site;
 
 /**
  *
@@ -61,6 +62,12 @@ class User
     protected $products = array();
 
     /**
+     * User sites
+     * @var array
+     */
+    protected $sites = array();
+
+    /**
      * Constructor
      * 
      * @param array $p_datas
@@ -93,6 +100,7 @@ class User
     public function setId ($p_id)
     {
         $this->id = $p_id;
+        
         return $this;
     }
 
@@ -116,6 +124,7 @@ class User
     public function setLogin ($p_login)
     {
         $this->login = $p_login;
+        
         return $this;
     }
 
@@ -139,6 +148,7 @@ class User
     public function setPassword ($p_paswd)
     {
         $this->password = $p_paswd;
+        
         return $this;
     }
 
@@ -162,6 +172,7 @@ class User
     public function setTitle ($p_title)
     {
         $this->title = $p_title;
+        
         return $this;
     }
 
@@ -185,6 +196,7 @@ class User
     public function setFirstname ($p_firstname)
     {
         $this->firstname = $p_firstname;
+        
         return $this;
     }
 
@@ -208,6 +220,7 @@ class User
     public function setLastname ($p_lastname)
     {
         $this->lastname = $p_lastname;
+        
         return $this;
     }
 
@@ -231,6 +244,7 @@ class User
     public function setEmail ($p_email)
     {
         $this->email = $p_email;
+        
         return $this;
     }
 
@@ -252,6 +266,7 @@ class User
     public function flushProducts ()
     {
         $this->products = array();
+        
         return $this;
     }
 
@@ -268,7 +283,7 @@ class User
     /**
      * Add one product
      * 
-     * @param Product $p_product
+     * @param \DBookSecurityClient\Models\Product $p_product
      * 
      * @return \DBookSecurityClient\Models\User
      */
@@ -284,6 +299,7 @@ class User
         if (!$found) {
             $this->products[] = $p_product;
         }
+        
         return $this;
     }
 
@@ -292,7 +308,7 @@ class User
      * 
      * @param string $p_code
      * 
-     * @return Product|boolean
+     * @return \DBookSecurityClient\Models\Product |boolean
      */
     public function getProductByCode ($p_code)
     {
@@ -301,7 +317,41 @@ class User
                 return $oneProduct;
             }
         }
+        
         return false;
+    }
+
+    /**
+     * Get all sites
+     * 
+     * @return array
+     */
+    public function getSites ()
+    {
+        return $this->sites;
+    }
+
+    /**
+     * Add a site
+     * 
+     * @param \DBookSecurityClient\Models\Site $p_site
+     * 
+     * @return \DBookSecurityClient\Models\User
+     */
+    public function addSite ($p_site)
+    {
+        $found = false;
+        foreach ($this->sites as $oneSite) {
+            if ($oneSite->getName() == $p_site->getName()) {
+                $found = true;
+                break;
+            }
+        }
+        if (!$found) {
+            $this->sites[] = $p_site;
+        }
+        
+        return $this;
     }
 
     /**

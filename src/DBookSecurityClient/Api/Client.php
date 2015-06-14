@@ -7,6 +7,8 @@ use DBookSecurityClient\Interfaces\AuthorizationInterface;
 use DBookSecurityClient\Interfaces\UserInterface;
 use DBookSecurityClient\Models\User;
 use DBookSecurityClient\Models\Product;
+use DBookSecurityClient\Models\Token;
+use DBookSecurityClient\DBookSecurityException;
 
 /**
  * Main Api Client
@@ -19,7 +21,7 @@ class Client implements AuthentificationInterface, AuthorizationInterface, UserI
 {
 
     /**
-     * Api servers' url
+     * Api server url
      * @var string
      */
     protected $url = "http://::env::dbook-security.deboeck.com/api/";
@@ -126,15 +128,18 @@ class Client implements AuthentificationInterface, AuthorizationInterface, UserI
                 $cookies .= ';' . urlencode($key) . '=' . urlencode($value);
             }
         }
+        
         return $cookies;
     }
 
     /**
-     * CALL the API in POST
+     * CALL the API in POST, get the status and body
      *
      * @param string $p_call
      * @param array  $p_datas
      * @param mixed  $p_statusCode
+     * 
+     * @return array
      */
     public function apiCall ($p_method = DBCST::METHOD_GET, $p_call, $p_datas = array())
     {
@@ -167,14 +172,11 @@ class Client implements AuthentificationInterface, AuthorizationInterface, UserI
         $body = curl_exec($curl);
         $ret  = curl_getinfo($curl, CURLINFO_HTTP_CODE);
         if (curl_errno($curl) != 0) {
-            echo '<h1>Error with request</h1><pre>' . print_r($body, true) . '</pre>';
-            echo '<h2>><pre>' . print_r($ret, true) . '</h2>';
-            throw new \Exception("SSO failure: HTTP request to server failed. " . curl_error($curl));
+            throw new DBookSecurityException(sprintf('SSO failure: HTTP request to server failed. %s', curl_error($curl)));
         }
         if ($body != '') {
             if (json_decode($body) === false || json_decode($body) === null) {
-                echo '<h1>Error with Body</h1><pre>' . print_r($body, true) . '</pre>';
-                throw new \Exception("SSO failure: HTTP request to server failed !");
+                throw new DBookSecurityException('SSO failure: HTTP request to server failed !');
             }
         } else {
             $body = null;
@@ -188,11 +190,11 @@ class Client implements AuthentificationInterface, AuthorizationInterface, UserI
      * Set user info from user XML
      *
      * @param string $p_response
+     * 
+     * @return mixed
      */
     protected function parseInfo ($p_response)
     {
-        $this->userinfo = false;
-        //
         $result = json_decode($p_response);
         if (is_array($result)) {
             
@@ -204,7 +206,7 @@ class Client implements AuthentificationInterface, AuthorizationInterface, UserI
             }
         }
         
-        return null;
+        return $p_response;
     }
 
     /**
@@ -257,7 +259,7 @@ class Client implements AuthentificationInterface, AuthorizationInterface, UserI
      * @param string  $p_password
      * @param boolean $p_autoLogin
      *
-     * @return boolean
+     * @return array
      */
     public function signinByLoginAndPassword ($p_login, $p_password, $p_autoLogin = false)
     {
@@ -267,7 +269,7 @@ class Client implements AuthentificationInterface, AuthorizationInterface, UserI
         if (!isset($p_password) && isset($_REQUEST['password'])) {
             $p_password=$_REQUEST['password'];
         }
-        list($ret, $body) = $this->apiCall(DBCST::METHOD_POST, 'login', array('login'=>$p_login, 'password'=>$p_password));
+        list($ret, $body) = $this->apiCall(DBCST::METHOD_POST, 'login/' . $p_login . '/' . $p_password);
         if ($ret == 200) {
             
             return array($ret, $this->parseInfo($body));
@@ -279,7 +281,7 @@ class Client implements AuthentificationInterface, AuthorizationInterface, UserI
     /**
      * Logout
      *
-     * @return boolean
+     * @return array
      */
     public function logout ()
     {
@@ -291,7 +293,7 @@ class Client implements AuthentificationInterface, AuthorizationInterface, UserI
     /**
      * Logout
      *
-     * @return boolean
+     * @return array
      */
     public function completeLogout ()
     {
@@ -300,6 +302,8 @@ class Client implements AuthentificationInterface, AuthorizationInterface, UserI
 
     /**
      * Get user information.
+     * 
+     * @return array
      */
     public function getUser ()
     {
@@ -325,7 +329,7 @@ class Client implements AuthentificationInterface, AuthorizationInterface, UserI
      *
      * @param array $p_products
      *
-     * @return array
+     * @return string | boolean
      */
     public function takeToken ($p_products)
     {
@@ -337,7 +341,7 @@ class Client implements AuthentificationInterface, AuthorizationInterface, UserI
      *
      * @param array  $p_products
      *
-     * @return boolean
+     * @return string | boolean
      */
     public function freeToken ($p_products)
     {
@@ -349,11 +353,11 @@ class Client implements AuthentificationInterface, AuthorizationInterface, UserI
      *
      * @param string $p_id
      *
-     * @return DBookSecurityClient\Models\User
+     * @return DBookSecurityClient\Models\User | boolean
      */
     public function getUserById ($p_id)
     {
-        list($ret, $body) = $this->apiCall(self::METHOD_GET, '/users/id/' . $p_id);
+        list($ret, $body) = $this->apiCall(DBCST::METHOD_GET, '/users/id/' . $p_id);
         if ($ret == 200) {
             if (is_array($arr = $this->parseInfo($body))) {
                 
@@ -369,11 +373,11 @@ class Client implements AuthentificationInterface, AuthorizationInterface, UserI
      *
      * @param string  $p_token
      *
-     * @return DBookSecurityClient\Models\User
+     * @return DBookSecurityClient\Models\User | boolean
     */
     public function getUserByOauth2Token ($p_token)
     {
-        list($ret, $body) = $this->apiCall(self::METHOD_GET, '/users/oauth2/' . $p_token);
+        list($ret, $body) = $this->apiCall(DBCST::METHOD_GET, '/users/oauth2/' . $p_token);
         if ($ret == 200) {
             if (is_array($arr = $this->parseInfo($body))) {
                 return new User($arr);
@@ -388,14 +392,14 @@ class Client implements AuthentificationInterface, AuthorizationInterface, UserI
      *
      * @param string  $p_token
      *
-     * @return DBookSecurityClient\Models\User
+     * @return DBookSecurityClient\Models\Token
      */
     public function getOAuth2Token ($p_code, $p_redirect_uri = null)
     {
-        list($ret, $body) = $this->apiCall(self::METHOD_POST, '/oauth2/token/' . $p_code, array('redirect_uri' => $p_redirect_uri));
+        list($ret, $body) = $this->apiCall(DBCST::METHOD_POST, '/oauth2/token/' . $p_code, array('redirect_uri' => $p_redirect_uri));
         if ($ret == 200) {
             if (is_array($arr = $this->parseInfo($body))) {
-                return $arr;
+                return new Token($arr);
             }
         }
         

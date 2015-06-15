@@ -24,7 +24,7 @@ class Client implements AuthentificationInterface, AuthorizationInterface, UserI
      * Api server url
      * @var string
      */
-    protected $url = "http://::env::dbook-security.deboeck.com/api/";
+    protected $url = "https://::env::dbook-security.deboeck.com/api/";
 
     /**
      * My identifier, given by DeBoeck.
@@ -63,7 +63,12 @@ class Client implements AuthentificationInterface, AuthorizationInterface, UserI
      */
     protected function getUrl ()
     {
-        return str_replace('::env::', $this->env, rtrim($this->url, '/'));
+        $url = str_replace('::env::', $this->env, rtrim($this->url, '/'));
+        if ($this->env == DBCST::ENV_DEV) {
+            // No https in dev
+            $url = str_replace('https://', 'http://', $url);
+        }
+        return $url;
     }
 
     /**

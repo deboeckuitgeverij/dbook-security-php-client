@@ -155,9 +155,14 @@ All methods are available in the /src/DBookSecurityClient/Interfaces folder.
 
 * Add autologin capabilities
 * Add interfaces for models
+* Refactor base class of Client and Gate
 
 
 # Versions
+
+* 1.1.3 - 15/06/2015
+    * test and preprod env adaptations
+    * No https in development
 
 * 1.1.2 - 14/06/2015
     * New architecture

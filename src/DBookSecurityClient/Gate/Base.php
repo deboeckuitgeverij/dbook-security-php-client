@@ -18,7 +18,7 @@ class Base
      * Gates' url
      * @var string
      */
-    protected $url = "http://::env::dbook-security.deboeck.com/";
+    protected $url = "https://::env::dbook-security.deboeck.com/";
 
     /**
      * My identifier, given by SSO provider.
@@ -69,7 +69,12 @@ class Base
      */
     protected function getUrl ($p_api = true)
     {
-        return str_replace('::env::', $this->env, rtrim($this->url, '/'));
+        $url = str_replace('::env::', $this->env, rtrim($this->url, '/'));
+        if ($this->env == DBCST::ENV_DEV) {
+            // No https in dev
+            $url = str_replace('https://', 'http://', $url);
+        }
+        return $url;
     }
 
     /**
@@ -105,10 +110,12 @@ class Base
         $url    = "http://{$_SERVER["SERVER_NAME"]}";
         $parts  = parse_url($_SERVER['REQUEST_URI']);
         $fields = array();
-        parse_str($parts['query'], $fields);
-        foreach ($this->exclude_at_redirect as $key) {
-            if (array_key_exists($key, $fields)) {
-                unset($fields[$key]);
+        if(array_key_exists('query', $parts) && $parts['query'] != '') {
+            parse_str($parts['query'], $fields);
+            foreach ($this->exclude_at_redirect as $key) {
+                if (array_key_exists($key, $fields)) {
+                    unset($fields[$key]);
+                }
             }
         }
         $url    = $url . $parts['path'];

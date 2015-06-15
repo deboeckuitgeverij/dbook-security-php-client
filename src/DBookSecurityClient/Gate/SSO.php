@@ -139,7 +139,7 @@ class SSO extends Base
     public function reload ()
     {
         setcookie(self::CDSSOID_NAME, null, time() - 1000);
-        setcookie(self::TOKEN_NAME, null, time() - 1000);
+        //setcookie(self::TOKEN_NAME, null, time() - 1000); We don't need to remove this one...
         $url = $this->getCurrentUrl();
         header("Location: " . $url, true, 301);
         exit;

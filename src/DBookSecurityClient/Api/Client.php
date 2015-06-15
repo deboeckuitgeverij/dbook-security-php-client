@@ -274,7 +274,7 @@ class Client implements AuthentificationInterface, AuthorizationInterface, UserI
         if (!isset($p_password) && isset($_REQUEST['password'])) {
             $p_password=$_REQUEST['password'];
         }
-        list($ret, $body) = $this->apiCall(DBCST::METHOD_POST, 'login/' . $p_login . '/' . $p_password);
+        list($ret, $body) = $this->apiCall(DBCST::METHOD_POST, 'login', array('login' => $p_login, 'password' => $p_password));
         if ($ret == 200) {
             
             return array($ret, $this->parseInfo($body));
@@ -401,7 +401,7 @@ class Client implements AuthentificationInterface, AuthorizationInterface, UserI
      */
     public function getOAuth2Token ($p_code, $p_redirect_uri = null)
     {
-        list($ret, $body) = $this->apiCall(DBCST::METHOD_POST, '/oauth2/token/' . $p_code, array('redirect_uri' => $p_redirect_uri));
+        list($ret, $body) = $this->apiCall(DBCST::METHOD_POST, '/oauth2/token', array('code' => $p_code, redirect_uri' => $p_redirect_uri));
         if ($ret == 200) {
             if (is_array($arr = $this->parseInfo($body))) {
                 return new Token($arr);

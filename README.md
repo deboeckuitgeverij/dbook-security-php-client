@@ -160,6 +160,9 @@ All methods are available in the /src/DBookSecurityClient/Interfaces folder.
 
 # Versions
 
+* 1.1.4 - 15/06/2015
+    * adaptations for login and token. API 0.1.3
+
 * 1.1.3 - 15/06/2015
     * test and preprod env adaptations
     * No https in development

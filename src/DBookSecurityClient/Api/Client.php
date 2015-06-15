@@ -385,6 +385,7 @@ class Client implements AuthentificationInterface, AuthorizationInterface, UserI
         list($ret, $body) = $this->apiCall(DBCST::METHOD_GET, '/users/oauth2/' . $p_token);
         if ($ret == 200) {
             if (is_array($arr = $this->parseInfo($body))) {
+                
                 return new User($arr);
             }
         }
@@ -404,6 +405,7 @@ class Client implements AuthentificationInterface, AuthorizationInterface, UserI
         list($ret, $body) = $this->apiCall(DBCST::METHOD_POST, '/oauth2/token', array('code' => $p_code, 'redirect_uri' => $p_redirect_uri));
         if ($ret == 200) {
             if (is_array($arr = $this->parseInfo($body))) {
+                
                 return new Token($arr);
             }
         }

@@ -155,6 +155,9 @@ All methods are available in the /src/DBookSecurityClient/Interfaces folder.
 
 # Versions
 
+* 1.1.6 - 17/06/2015
+    * First real release
+
 * 1.1.5 - 17/06/2015
     * Separate gates for oauth, saml, ...
     * User products and sites available if exists 

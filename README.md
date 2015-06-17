@@ -10,7 +10,7 @@ It is the basic version which can be combined with SAML2.0 protocol if needed.
 An OAuth2.0 access is also available.
 
 A basic configuration needs :
-* The CDSSO server environment : test / pre-production / production
+* The DeBoeck server environment : test / pre-production / production
 * A broker key
 * A broker secret
 
@@ -41,12 +41,8 @@ There are no autoloader class provided. You can use the composer.
 require_once(APP_PATH . "/vendor/autoload.php");
 ```
 
-Then easy to get the main Gate. Four paramaters are required :
+Then easy to get the main Gate. Three paramaters are required :
 * the broker key and the broker secret given by DeBoeck.
-* the *gate login type* which can be
-    * none for jute the api
-    * GATE_SSO to use the SSO capabilities
-    * GATE_OAUTH2 to use tokens.  
 * the environment
     * ENV_TEST
     * ENV_PREPROD
@@ -54,19 +50,18 @@ Then easy to get the main Gate. Four paramaters are required :
 
 ```
 /**
- * Instantiate the client
+ * Instantiate the client, choose the right gate
  */
-$gate = \DBookSecurityClient\Gate::getInstance(
+$gate = \DBookSecurityClient\StandardAuthGate::getInstance(
     '<broker>',
     '<scret>',
-    \DBookSecurityClient\Constants::GATE_SSO,
     \DBookSecurityClient\Constants::ENV_PREPROD
 );
 $gate->setRedirectUri('<My callback url>');
 ```
 > The broker are by default the same for all environments, but they can be different if needed.
 
-## Only for the SSO Gate 
+## Only for the StandardAuth Gate 
 
 You need the SSO basic knowledge to go thru this part.
 > Read the [guide](https://github.com/DeBoeck/dbook-security-guide)

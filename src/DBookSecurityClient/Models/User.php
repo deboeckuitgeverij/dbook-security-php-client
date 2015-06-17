@@ -1,9 +1,10 @@
 <?php
 namespace DBookSecurityClient\Models;
 
-use DBookSecurity\Constants AS DBCST;
+use DBookSecurityClient\Constants AS DBCST;
 use DBookSecurityClient\Models\Product;
 use DBookSecurityClient\Models\Site;
+use DBookSecurityClient\Services\Tools;
 
 /**
  *
@@ -56,6 +57,12 @@ class User
     protected $email = null;
 
     /**
+     * User preferred language
+     * @var string
+     */
+    protected $preferred_language = DBCST::LANGUAGE_UNKNOWN;
+
+    /**
      * User products
      * @var array
      */
@@ -78,6 +85,9 @@ class User
             if (array_key_exists('id', $p_datas)) {
                 $this->setId($p_datas['id']);
             }
+            if (array_key_exists('login', $p_datas)) {
+                $this->setLogin($p_datas['login']);
+            }
             if (array_key_exists('title', $p_datas)) {
                 $this->setTitle($p_datas['title']);
             }
@@ -86,6 +96,18 @@ class User
             }
             if (array_key_exists('last_name', $p_datas)) {
                 $this->setLastname($p_datas['last_name']);
+            }
+            if (array_key_exists('email', $p_datas)) {
+                $this->setEmail($p_datas['email']);
+            }
+            if (array_key_exists('lang', $p_datas)) {
+                $this->setPreferredLanguage($p_datas['lang']);
+            }
+            if (array_key_exists('products', $p_datas)) {
+                $this->addProducts(Tools::obj2Array($p_datas['products']));
+            }
+            if (array_key_exists('sites', $p_datas)) {
+                $this->addSites(Tools::obj2Array($p_datas['sites']));
             }
         }
     }
@@ -355,6 +377,33 @@ class User
     }
 
     /**
+     * Set preferred language
+     * 
+     * @param string $p_lang
+     * 
+     * @return \DBookSecurityClient\Models\User
+     */
+    public function setPreferredLanguage ($p_lang)
+    {
+        $this->preferred_language = DBCST::LANGUAGE_UNKNOWN;
+        if (in_array($p_lang, DBCST::getLanguages())) {
+            $this->preferred_language = $p_lang;
+        }
+        
+        return $this;
+    }
+
+    /**
+     * Return preferred language
+     * 
+     * @return string
+     */
+    public function getPreferredLanguage ()
+    {
+        return $this->preferred_language;
+    }
+
+    /**
      * Validate object
      * 
      * @return boolean
@@ -365,6 +414,48 @@ class User
             return false;
         }
         return true;
+    }
+
+    /**
+     * Add products
+     * 
+     * @param mixed $p_datas
+     * 
+     * @return \DBookSecurityClient\Models\User
+     */
+    protected function addProducts ($p_datas)
+    {
+        if (is_array($p_datas)) {
+            foreach ($p_datas as $key=>$oneProduct) {
+                $product = new Product($oneProduct);
+                if ($product->isValid()) {
+                    $this->addProduct($product);
+                }
+            }
+        }
+        
+        return $this;
+    }
+
+    /**
+     * Add sites
+     *
+     * @param mixed $p_datas
+     *
+     * @return \DBookSecurityClient\Models\User
+     */
+    protected function addSites ($p_datas)
+    {
+        if (is_array($p_datas)) {
+            foreach ($p_datas as $key=>$oneSite) {
+                $site = new Site($oneSite);
+                if ($site->isValid()) {
+                    $this->addSite($site);
+                }
+            }
+        }
+    
+        return $this;
     }
 
 }

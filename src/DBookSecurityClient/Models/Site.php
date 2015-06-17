@@ -111,4 +111,19 @@ class Site
         return $this->image;
     }
 
+    /**
+     * Valid ??
+     *
+     * @return boolean
+     */
+    public function isValid ()
+    {
+        if ($this->getName() != '') {
+            
+            return true;
+        }
+    
+        return false;
+    }
+
 }

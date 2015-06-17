@@ -24,6 +24,9 @@ Available for the browser session only.
 
 Add this to your *composer.json*
 ```
+    "repositories": [
+        { "type": "git", "url": "https://github.com/DeBoeck/dbook-security-php-client.git" }
+    ],
     "require": {
         "DeBoeck/dbook-security-php-client": "1.*"
     },
@@ -154,6 +157,9 @@ All methods are available in the /src/DBookSecurityClient/Interfaces folder.
 
 
 # Versions
+
+* 1.1.7 - 17/06/2015
+    * Packagist hook
 
 * 1.1.6 - 17/06/2015
     * First real release

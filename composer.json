@@ -1,6 +1,8 @@
 {
-    "name": "DeBoeck/dbook-security-php-client",
-    "license": "MIT",
+    "name": "deboeck/dbook-security-php-client",
+    "keywords": ["client", "web", "secure", "OAUTH", "SAML", "SSO", "API", "DBDIG"],
+    "homepage": "http://dbook-security.deboeck.com",
+    "license": "proprietary",
     "type": "project",
     "description": "DBOOK-Security-PHP-Client",
     "support": {

@@ -158,6 +158,9 @@ All methods are available in the /src/DBookSecurityClient/Interfaces folder.
 
 # Versions
 
+* 1.1.8 - 18/06/2015
+    * Package informations update
+
 * 1.1.7 - 17/06/2015
     * Packagist hook
 

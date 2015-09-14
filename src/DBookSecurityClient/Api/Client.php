@@ -140,9 +140,9 @@ class Client implements AuthentificationInterface, AuthorizationInterface, UserI
     /**
      * CALL the API in POST, get the status and body
      *
-     * @param string $p_call
+     * @param string $p_method
+     * @param string  $p_call
      * @param array  $p_datas
-     * @param mixed  $p_statusCode
      * 
      * @return array
      */
@@ -217,10 +217,10 @@ class Client implements AuthentificationInterface, AuthorizationInterface, UserI
     /**
      * Constructor
      * 
-     * @param string  $p_broker
-     * @param string  $p_secret
-     * @param string  $p_ip
-     * @param boolean $p_auto_attach
+     * @param string $p_broker
+     * @param string $p_secret
+     * @param string $p_ip
+     * @param string $p_env
      */
     public function __construct ($p_broker=null, $p_secret=null, $p_ip=null, $p_env=DBCST::ENV_DEV)
     {
@@ -396,13 +396,19 @@ class Client implements AuthentificationInterface, AuthorizationInterface, UserI
     /**
      * Try to get a user with an OAuth 2.0 token
      *
-     * @param string  $p_token
+     * @param string $p_code
+     * @param string $p_redirect_uri
+     * @param string $p_state
      *
      * @return DBookSecurityClient\Models\Token
      */
-    public function getOAuth2Token ($p_code, $p_redirect_uri = null)
+    public function getOAuth2Token ($p_code, $p_redirect_uri = null, $p_state = null)
     {
-        list($ret, $body) = $this->apiCall(DBCST::METHOD_POST, '/oauth2/token', array('code' => $p_code, 'redirect_uri' => $p_redirect_uri));
+        $add = array();
+        if ($p_state !== null) {
+            $add['state'] = $p_state;
+        }
+        list($ret, $body) = $this->apiCall(DBCST::METHOD_POST, '/oauth2/token', array_merge($add, array('code' => $p_code, 'redirect_uri' => $p_redirect_uri)));
         if ($ret == 200) {
             if (is_array($arr = $this->parseInfo($body))) {
                 

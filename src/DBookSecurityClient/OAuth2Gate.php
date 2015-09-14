@@ -64,12 +64,13 @@ class OAuth2Gate extends BaseGate
      * Get an token
      *
      * @param string $p_authorization_code
+     * @param string $p_state
      *
      * @return string
      */
-    public function getToken ($p_authorization_code)
+    public function getToken ($p_authorization_code, $p_state = null)
     {
-        return $this->api->getOAuth2Token($p_authorization_code, $this->uri);
+        return $this->api->getOAuth2Token($p_authorization_code, $this->uri, $p_state);
     }
 
 }

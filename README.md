@@ -125,7 +125,7 @@ This is an interactive operation between the user and your website. The user wil
 You can add a state parameter, send back at callback. The first parameter is an array of scopes, not implemented yet.
 
 ```
-$gate->askAuthorizationCode(array(), state);
+$gate->askAuthorizationCode([array()[, state]]);
 exit; // It' a redirect
 ```
 > This authorization code can be used to retrieve an access token for the authorized resources.
@@ -138,7 +138,7 @@ exit; // It' a redirect
 Get an access token for the user.
 
 ```
-$token = $gate->getToken($code);
+$token = $gate->getToken($code[, $state]);
 ```
 
 > This token is used as credential for the user. In most case to retrieve user's informations or to get remote resources.
@@ -159,6 +159,9 @@ All methods are available in the /src/DBookSecurityClient/Interfaces folder.
 
 
 # Versions
+
+* 1.1.10 - 14/09/2015
+    * API getOAuth2Token with state parameter
 
 * 1.1.9 - 14/09/2015
     * OAuth2 askAuthorizationCode with state parameter

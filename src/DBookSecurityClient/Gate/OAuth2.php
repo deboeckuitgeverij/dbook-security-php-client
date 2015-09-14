@@ -46,9 +46,13 @@ class OAuth2 extends Base
      * 
      * @return string
      */
-    public function askAuthorizationCode ($p_scopes = array())
+    public function askAuthorizationCode ($p_scopes = array(), $p_state = null)
     {
-        $continue = $this->getUrl() . '/auth/authorize?response_type=code&client_id=' . $this->broker . '&redirect_uri=' . $this->uri;
+        $add = '';
+        if ($p_state !== null) {
+            $add = '&state=' . $p_state;
+        }
+        $continue = $this->getUrl() . '/auth/authorize?response_type=code&client_id=' . $this->broker . $add . '&redirect_uri=' . $this->uri;
         list($ret, $result) = $this->gateCall('login', array('continue' => $continue));
     }
 

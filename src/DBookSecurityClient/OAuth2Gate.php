@@ -45,9 +45,9 @@ class OAuth2Gate extends BaseGate
      *
      * @return string
      */
-    public function askAuthorizationCode ($p_scopes = array())
+    public function askAuthorizationCode ($p_scopes = array(), $p_state = null)
     {
-        $this->gate->askAuthorizationCode($p_scopes);
+        $this->gate->askAuthorizationCode($p_scopes, $p_state);
     }
 
     /**

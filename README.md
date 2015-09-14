@@ -122,8 +122,10 @@ You need the OAuth 2.0 basic knowledge to go thru this part.
 
 This is an interactive operation between the user and your website. The user will be sent to DeBoeck gate to authenticate if not allready done. Then he must authorize access. You will then get on the redirect uri mentionned the authorization code.
 
+You can add a state parameter, send back at callback. The first parameter is an array of scopes, not implemented yet.
+
 ```
-$gate->askAuthorizationCode();
+$gate->askAuthorizationCode(array(), state);
 exit; // It' a redirect
 ```
 > This authorization code can be used to retrieve an access token for the authorized resources.
@@ -157,6 +159,9 @@ All methods are available in the /src/DBookSecurityClient/Interfaces folder.
 
 
 # Versions
+
+* 1.1.9 - 14/09/2015
+    * OAuth2 askAuthorizationCode with state parameter
 
 * 1.1.8 - 18/06/2015
     * Package informations update

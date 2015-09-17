@@ -36,7 +36,7 @@ Add this to your *composer.json*
 
 > All demos [here](https://github.com/DeBoeck/dbook-security-php-sample)
 
-> The models [here](DBookSecurityClient/Models/readme.md)
+> The models [here](https://github.com/deboeck/dbook-security-php-client/tree/master/src/DBookSecurityClient/Models)
 
 ## Basic instantiation
 

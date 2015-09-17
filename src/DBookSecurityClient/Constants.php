@@ -156,4 +156,26 @@ class Constants
         return array(self::PRODUCT_DURATION_1M, self::PRODUCT_DURATION_1SY, self::PRODUCT_DURATION_1Y, self::PRODUCT_DURATION_UNLIMITED);
     }
 
+    /**
+     * Return default DBookSecurity base url
+     * 
+     * @param string $p_env
+     * 
+     * @return string
+     */
+    public static function getDBookSecurityBaseUrl ($p_env = self::ENV_DEV)
+    {
+        $url = '';
+        switch ($p_env) {
+            case self::ENV_PROD:
+                return 'https://dbook-security.deboeck.com';
+            case self::ENV_PREPROD:
+                return 'https://preprod-dbook-security.deboeck.com';
+            case self::ENV_TEST:
+                return 'https://test-dbook-security.deboeck.com';
+        }
+        
+        return 'http://dev-dbook-security.deboeck.com';
+    }
+
 }

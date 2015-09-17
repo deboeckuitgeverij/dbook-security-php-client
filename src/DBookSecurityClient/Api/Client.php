@@ -200,7 +200,7 @@ class Client implements AuthentificationInterface, AuthorizationInterface, UserI
      */
     protected function parseInfo ($p_response)
     {
-        $result = json_decode($p_response);
+        $result = json_decode($p_response, true);
         if (is_array($result)) {
             
             return $result;
@@ -400,7 +400,7 @@ class Client implements AuthentificationInterface, AuthorizationInterface, UserI
      * @param string $p_redirect_uri
      * @param string $p_state
      *
-     * @return DBookSecurityClient\Models\Token
+     * @return \DBookSecurityClient\Models\Token|boolean
      */
     public function getOAuth2Token ($p_code, $p_redirect_uri = null, $p_state = null)
     {
@@ -409,6 +409,31 @@ class Client implements AuthentificationInterface, AuthorizationInterface, UserI
             $add['state'] = $p_state;
         }
         list($ret, $body) = $this->apiCall(DBCST::METHOD_POST, '/oauth2/token', array_merge($add, array('code' => $p_code, 'redirect_uri' => $p_redirect_uri)));
+        if ($ret == 200) {
+            if (is_array($arr = $this->parseInfo($body))) {
+                
+                return new Token($arr);
+            }
+        }
+        
+        return false;
+    }
+
+    /**
+     * Try to get a new token from a refreshToken
+     * 
+     * @param string $p_refreshToken
+     * @param string $p_state
+     * 
+     * @return \DBookSecurityClient\Models\Token|boolean
+     */
+    public function getOAuth2FreshToken ($p_refreshToken, $p_state = null)
+    {
+        $add = array();
+        if ($p_state !== null) {
+            $add['state'] = $p_state;
+        }
+        list($ret, $body) = $this->apiCall(DBCST::METHOD_POST, '/oauth2/refresh', array_merge($add, array('code' => $p_refreshToken)));
         if ($ret == 200) {
             if (is_array($arr = $this->parseInfo($body))) {
                 

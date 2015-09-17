@@ -36,6 +36,8 @@ Add this to your *composer.json*
 
 > All demos [here](https://github.com/DeBoeck/dbook-security-php-sample)
 
+> The models [here](DBookSecurityClient/Models/readme.md)
+
 ## Basic instantiation
 
 There are no autoloader class provided. You can use the composer. 
@@ -46,14 +48,14 @@ require_once(APP_PATH . "/vendor/autoload.php");
 
 Then easy to get the main Gate. Three paramaters are required :
 * the broker key and the broker secret given by DeBoeck.
-* the environment
+* the environment (all constants are available in this class : \DBookSecurityClient\Constants)
     * ENV_TEST
     * ENV_PREPROD
     * ENV_PROD  
 
 ```
 /**
- * Instantiate the client, choose the right gate
+ * Instantiate the client, choose the right gate (Standard, OAuth2, Saml2)
  */
 $gate = \DBookSecurityClient\StandardAuthGate::getInstance(
     '<broker>',
@@ -69,7 +71,7 @@ $gate->setRedirectUri('<My callback url>');
 You need the SSO basic knowledge to go thru this part.
 > Read the [guide](https://github.com/DeBoeck/dbook-security-guide)
 
-> Sample code [here](https://github.com/DeBoeck/dbook-security-php-sample/tree/master/broker2)
+> Sample code [here](https://github.com/DeBoeck/dbook-security-php-sample/tree/master/deboeck/broker2)
 
 ### Get logged-in User
 
@@ -83,7 +85,7 @@ if (!$user) {
     exit;
 }
 ```
-> The *$user* variable is a model(class), products ans sites to. You can see the structure in the /src/DBookSecurityClient/Models folder.
+> The *$user* variable is a model(class), products and sites to. You can see the structure in the /src/DBookSecurityClient/Models folder.
 >
 > A user is composed of
 > * User main data
@@ -116,11 +118,18 @@ $gate->logout();
 You need the OAuth 2.0 basic knowledge to go thru this part.
 > Read the [guide](https://github.com/DeBoeck/dbook-security-guide)
 
-> Sample code [here](https://github.com/DeBoeck/dbook-security-php-sample/tree/master/oauth2)
+> Sample code [here](https://github.com/DeBoeck/dbook-security-php-sample/tree/master/deboeck/oauth2)
+
+The redirect url must be given at register time. It can't be changed.
+A state parameter is also available for security and/or intern requirements.
 
 ### Authorization token
 
-This is an interactive operation between the user and your website. The user will be sent to DeBoeck gate to authenticate if not allready done. Then he must authorize access. You will then get on the redirect uri mentionned the authorization code.
+This is an interactive operation between the user and your website.
+* The user will be sent to DeBoeck gate to authenticate if not allready done.
+* He must authorize access in order to get a authorization token.
+* The user will then be redirected to the "redirect uri" mentionned.
+* You are also "authorize" to retrieve a token with the authorization token.
 
 You can add a state parameter, send back at callback. The first parameter is an array of scopes, not implemented yet.
 
@@ -145,6 +154,14 @@ $token = $gate->getToken($code[, $state]);
 > 
 > The token has a validity (set at register time)
 
+### Refresh token
+
+Get a fresh token from a refreshToken (retrieved with getToken function)
+
+```
+$token = $api->getOAuth2FreshToken($refreshToken);
+```
+
 # Technical informations
 
 All methods are available in the /src/DBookSecurityClient/Interfaces folder.
@@ -157,8 +174,12 @@ All methods are available in the /src/DBookSecurityClient/Interfaces folder.
 * Add interfaces for models
 * Refactor base class of Client and Gate
 
-
 # Versions
+
+* 1.2.0 - 17/09/2015
+    * API : getOAuth2FreshToken
+    * UserModel : Sites and Products
+    * Documentation
 
 * 1.1.10 - 14/09/2015
     * API getOAuth2Token with state parameter
@@ -196,7 +217,6 @@ All methods are available in the /src/DBookSecurityClient/Interfaces folder.
 * 1.1.0 - 08/04/2015
     * Objects as models
     * tokens (take/free) 
-
 
 * 1.0.0 - 27/03/2015
 

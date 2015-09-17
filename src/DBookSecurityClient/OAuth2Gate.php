@@ -61,7 +61,7 @@ class OAuth2Gate extends BaseGate
     }
 
     /**
-     * Get an token
+     * Get a token
      *
      * @param string $p_authorization_code
      * @param string $p_state

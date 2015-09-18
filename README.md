@@ -176,6 +176,9 @@ All methods are available in the /src/DBookSecurityClient/Interfaces folder.
 
 # Versions
 
+* 1.2.1 - 18/09/2015
+    * Bug in Site.php
+
 * 1.2.0 - 17/09/2015
     * API : getOAuth2FreshToken
     * UserModel : Sites and Products

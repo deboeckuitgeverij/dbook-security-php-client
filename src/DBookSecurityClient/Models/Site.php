@@ -1,7 +1,7 @@
 <?php
 namespace DBookSecurityClient\Models;
 
-use DBookSecurity\Constants AS DBCST;
+use DBookSecurityClient\Constants AS DBCST;
 
 /**
  *

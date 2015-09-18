@@ -45,6 +45,10 @@ class Site
             }
             if (array_key_exists('image', $p_record)) {
                 $this->setImage($p_record['image']);
+            } else {
+                if (array_key_exists('picture', $p_record)) {
+                    $this->setImage($p_record['picture']);
+                }
             }
         }
     }

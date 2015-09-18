@@ -176,6 +176,9 @@ All methods are available in the /src/DBookSecurityClient/Interfaces folder.
 
 # Versions
 
+* 1.2.2 - 18/09/2015
+    * Bug in RedirectTo
+
 * 1.2.1 - 18/09/2015
     * Bug in Site.php
 

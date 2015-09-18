@@ -50,7 +50,19 @@ class BaseGate
      * Home Page Url
      * @var string
      */
-    protected $homeUrl = null;
+    protected $homeUrl = null;    
+
+    /**
+     * Login Page Url
+     * @var string
+     */
+    protected $loginUrl = null;
+    
+    /**
+     * Redirect to Login if Not Logged in ??
+     * @var boolean
+     */
+    protected $redirectToLogin = false;
 
     /**
      * Debug mode
@@ -132,6 +144,20 @@ class BaseGate
     }
 
     /**
+     * Set Login Url
+     *
+     * @param string $p_url
+     *
+     * @return \DBookSecurity\DBookSecurityClient
+     */
+    public function setLoginUrl ($p_url)
+    {
+        $this->loginUrl = $p_url;
+    
+        return $this;
+    }
+
+    /**
      * Redirect to specific url
      *
      * @param string $p_url
@@ -140,6 +166,23 @@ class BaseGate
     {
         header('location: ' . $p_url);
         exit();
+    }
+
+    /**
+     * Redirect to ??
+     * 
+     * @param string $p_redirectOn
+     */
+    protected function redirectTo ($p_redirectOn = DBCST::REDIRECT_NONE)
+    {
+        switch ($p_redirectOn) {
+            case DBCST::REDIRECT_TO_HOME:
+                self::redirectToUrl($this->homeUrl);
+                break;
+            case DBCST::REDIRECT_TO_LOGIN:
+                self::redirectToUrl($this->loginUrl);
+                break;
+        }
     }
 
     /**

@@ -7,18 +7,6 @@ class StandardAuthGate extends BaseGate
 {
 
     /**
-     * Login Page Url
-     * @var string
-     */
-    protected $loginUrl = null;
-
-    /**
-     * Redirect to Login if Not Logged in ??
-     * @var boolean
-     */
-    protected $redirectToLogin = false;
-
-    /**
      * Not authorized.... use ::getInstance()
      *
      * @param string  $p_broker_key
@@ -54,20 +42,6 @@ class StandardAuthGate extends BaseGate
         }
     
         return self::$_instance;
-    }
-
-    /**
-     * Set Login Url
-     *
-     * @param string $p_url
-     *
-     * @return \DBookSecurity\DBookSecurityClient
-     */
-    public function setLoginUrl ($p_url)
-    {
-        $this->loginUrl = $p_url;
-    
-        return $this;
     }
 
     /**

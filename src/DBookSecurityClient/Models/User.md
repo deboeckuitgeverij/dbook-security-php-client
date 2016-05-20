@@ -13,11 +13,6 @@ The main object, here the maintained methods :
 
 # Civility
 
-## title
-> name : getTitle
->
-> return : string
-
 ## firstname
 > name : getFirstname
 >
@@ -35,12 +30,21 @@ The main object, here the maintained methods :
 >
 > return : string
 
+    email address
+
 ## email
 > name : getEmail
 >
 > return : string
 
+    is identical to the login, only the getter remains for backwards compatibility
+
 # Others
+
+## role
+> name : getRole
+>
+> return : \DBookSecurityClient\Constants::ROLE_*
 
 ## language
 > name : getPreferredLanguage

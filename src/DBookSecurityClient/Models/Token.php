@@ -1,8 +1,6 @@
 <?php
 namespace DBookSecurityClient\Models;
 
-use DBookSecurity\Constants AS DBCST;
-
 /**
  *
  * @author jérôme klam <jerome.klam@deboeck.com>

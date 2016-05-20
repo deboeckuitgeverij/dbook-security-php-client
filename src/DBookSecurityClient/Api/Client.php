@@ -19,6 +19,10 @@ use DBookSecurityClient\DBookSecurityException;
  */
 class Client implements AuthentificationInterface, AuthorizationInterface, UserInterface
 {
+    /**
+     * @var string
+     */
+    protected $env;
 
     /**
      * Api server url
@@ -55,6 +59,29 @@ class Client implements AuthentificationInterface, AuthorizationInterface, UserI
      * @var mixed
      */
     protected $userinfo = false;
+
+    /**
+     * @param string $p_broker
+     * @param string $p_secret
+     * @param string $p_ip
+     * @param string $p_env
+     */
+    public function __construct ($p_broker=null, $p_secret=null, $p_ip=null, $p_env=DBCST::ENV_DEV)
+    {
+        if (!session_id()) {
+            session_start();
+        }
+        if ($p_broker !== null) {
+            $this->broker = $p_broker;
+        }
+        if ($p_secret !== null) {
+            $this->secret = $p_secret;
+        }
+        if ($p_ip !== null) {
+            $this->ip = $p_ip;
+        }
+        $this->env = $p_env;
+    }
 
     /**
      * Get url
@@ -212,31 +239,6 @@ class Client implements AuthentificationInterface, AuthorizationInterface, UserI
         }
         
         return $p_response;
-    }
-
-    /**
-     * Constructor
-     * 
-     * @param string $p_broker
-     * @param string $p_secret
-     * @param string $p_ip
-     * @param string $p_env
-     */
-    public function __construct ($p_broker=null, $p_secret=null, $p_ip=null, $p_env=DBCST::ENV_DEV)
-    {
-        if (!session_id()) {
-            session_start();
-        }
-        if ($p_broker !== null) {
-            $this->broker = $p_broker;
-        }
-        if ($p_secret !== null) {
-            $this->secret = $p_secret;
-        }
-        if ($p_ip !== null) {
-            $this->ip = $p_ip;
-        }
-        $this->env = $p_env;
     }
 
     /**

@@ -33,12 +33,6 @@ class User
     protected $password = null;
 
     /**
-     * User title
-     * @var string
-     */
-    protected $title = null;
-
-    /**
      * User firstname
      * @var string
      */
@@ -51,10 +45,10 @@ class User
     protected $lastname = null;
 
     /**
-     * User email
+     * User role
      * @var string
      */
-    protected $email = null;
+    protected $role = null;
 
     /**
      * User preferred language
@@ -88,17 +82,14 @@ class User
             if (array_key_exists('login', $p_datas)) {
                 $this->setLogin($p_datas['login']);
             }
-            if (array_key_exists('title', $p_datas)) {
-                $this->setTitle($p_datas['title']);
+            if (array_key_exists('role', $p_datas)) {
+                $this->setRole($p_datas['role']);
             }
             if (array_key_exists('first_name', $p_datas)) {
                 $this->setFirstname($p_datas['first_name']);
             }
             if (array_key_exists('last_name', $p_datas)) {
                 $this->setLastname($p_datas['last_name']);
-            }
-            if (array_key_exists('email', $p_datas)) {
-                $this->setEmail($p_datas['email']);
             }
             if (array_key_exists('lang', $p_datas)) {
                 $this->setPreferredLanguage($p_datas['lang']);
@@ -185,27 +176,19 @@ class User
     }
 
     /**
-     * Title setter
-     * 
-     * @param string $p_title
-     * 
-     * @return \DBookSecurityClient\Models\User
+     * @return string
      */
-    public function setTitle ($p_title)
+    public function getRole()
     {
-        $this->title = $p_title;
-        
-        return $this;
+        return $this->role;
     }
 
     /**
-     * Title getter
-     * 
-     * @return string
+     * @param string $p_role
      */
-    public function getTitle ()
+    public function setRole($p_role)
     {
-        return $this->title;
+        $this->role = $p_role;
     }
 
     /**
@@ -257,27 +240,14 @@ class User
     }
 
     /**
-     * Email setter
-     * 
-     * @param string $p_email
-     * 
-     * @return \DBookSecurityClient\Models\User
-     */
-    public function setEmail ($p_email)
-    {
-        $this->email = $p_email;
-        
-        return $this;
-    }
-
-    /**
-     * Email getter
+     * Email getter returns the login
      * 
      * @return string
+     * @deprecated
      */
     public function getEmail ()
     {
-        return $this->email;
+        return $this->login;
     }
 
     /**

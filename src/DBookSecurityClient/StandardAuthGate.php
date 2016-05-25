@@ -2,6 +2,7 @@
 namespace DBookSecurityClient;
 
 use DBookSecurityClient\Constants as DBCST;
+use DBookSecurityClient\Models\User;
 
 class StandardAuthGate extends BaseGate
 {
@@ -33,7 +34,7 @@ class StandardAuthGate extends BaseGate
      * @param string  $p_env
      * @param boolean $p_debug
      *
-     * @return \DBookSecurity\DBookSecurityClient
+     * @return \DBookSecurityClient\StandardAuthGate
      */
     public static function getInstance ($p_broker_key, $p_broker_secret, $p_env = DBCST::ENV_DEV, $p_debug = false)
     {
@@ -49,7 +50,7 @@ class StandardAuthGate extends BaseGate
      *
      * @param boolean $p_redirect
      *
-     * @return \DBookSecurity\DBookSecurityClient
+     * @return \DBookSecurityClient\StandardAuthGate
      */
     public function setRedirectToLoginIfNotLoggedIn ($p_redirect = true)
     {
@@ -87,7 +88,7 @@ class StandardAuthGate extends BaseGate
      * @param string $p_redirectMode
      * @param string $p_redirectOnSuccess
      *
-     * @return \DBookSecurity\DBookSecurityClient
+     * @return bool
      */
     public function checkLoggedIn ($p_redirectOnError = DBCST::REDIRECT_NONE,
             $p_redirectOnSuccess = DBCST::REDIRECT_NONE)
@@ -118,7 +119,7 @@ class StandardAuthGate extends BaseGate
      * @param string  $p_redirectMode
      * @param string  $p_redirectOnError
      *
-     * @return \DBookSecurity\DBookSecurityClient
+     * @return bool
      */
     public function signinByLoginAndPassword ($p_email, $p_password, $p_autoLogin = false,
             $p_redirectMode = DBCST::REDIRECT_NONE,
@@ -147,7 +148,7 @@ class StandardAuthGate extends BaseGate
      * @param string  $p_redirectMode
      * @param string  $p_redirectOnError
      *
-     * @return \DBookSecurity\DBookSecurityClient
+     * @return bool
      */
     public function logout ($p_redirectMode = DBCST::REDIRECT_NONE,
             $p_redirectOnError = DBCST::REDIRECT_NONE)
@@ -174,7 +175,7 @@ class StandardAuthGate extends BaseGate
      * @param string  $p_redirectMode
      * @param string  $p_redirectOnError
      *
-     * @return \DBookSecurity\DBookSecurityClient
+     * @return bool
      */
     public function completeLogout ($p_redirectMode = DBCST::REDIRECT_TO_LOGIN,
             $p_redirectOnError = DBCST::REDIRECT_NONE)
@@ -216,5 +217,4 @@ class StandardAuthGate extends BaseGate
     
         return $user;
     }
-
 }

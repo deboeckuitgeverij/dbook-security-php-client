@@ -60,10 +60,16 @@ class Constants
     const USER_ID         = 'id';
     const USER_FIRST_NAME = 'firstname';
     const USER_LAST_NAME  = 'lastname';
-    const USER_TITLE      = 'title';
     const USER_LOGIN      = 'login';
-    const USER_EMAIL      = 'email';
-    const USER_ROLES      = 'roles';
+    const USER_ROLE       = 'role';
+
+    /**
+     * Roles
+     * @var string
+     */
+    const ROLE_OTHER       = 'OTHER';
+    const ROLE_TEACHER     = 'TEACHER';
+    const ROLE_STUDENT     = 'STUDENT';
 
     /**
      * Audiences (products)

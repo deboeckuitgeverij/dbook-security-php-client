@@ -19,6 +19,10 @@ use DBookSecurityClient\DBookSecurityException;
  */
 class Client implements AuthentificationInterface, AuthorizationInterface, UserInterface
 {
+    /**
+     * @var string
+     */
+    protected $env;
 
     /**
      * Api server url
@@ -55,6 +59,29 @@ class Client implements AuthentificationInterface, AuthorizationInterface, UserI
      * @var mixed
      */
     protected $userinfo = false;
+
+    /**
+     * @param string $p_broker
+     * @param string $p_secret
+     * @param string $p_ip
+     * @param string $p_env
+     */
+    public function __construct ($p_broker=null, $p_secret=null, $p_ip=null, $p_env=DBCST::ENV_DEV)
+    {
+        if (!session_id()) {
+            session_start();
+        }
+        if ($p_broker !== null) {
+            $this->broker = $p_broker;
+        }
+        if ($p_secret !== null) {
+            $this->secret = $p_secret;
+        }
+        if ($p_ip !== null) {
+            $this->ip = $p_ip;
+        }
+        $this->env = $p_env;
+    }
 
     /**
      * Get url
@@ -159,20 +186,21 @@ class Client implements AuthentificationInterface, AuthorizationInterface, UserI
         }
         // Next
         $url = $url . $call;
-        // Curll init and call...
+        // Curl init and call...
         $curl = curl_init($url);
+
+        if (isset($p_datas)) {
+            curl_setopt($curl, CURLOPT_POST, true);
+            curl_setopt($curl, CURLOPT_POSTFIELDS, http_build_query($p_datas));
+            $headers[] = "Content-Type:  application/x-www-form-urlencoded";
+        }
+
         curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
         curl_setopt($curl, CURLOPT_HTTPHEADER, $headers);
         if (false !== ($cookies = $this->getCookiesAsHeader())) {
             curl_setopt($curl, CURLOPT_COOKIE, $cookies);
         }
-        if ($p_method != DBCST::METHOD_GET) {
-            curl_setopt($curl, CURLOPT_USERPWD, urlencode($this->broker) . ':' . urlencode($this->secret));
-            curl_setopt($curl, CURLOPT_POST, true);
-            if (isset($p_datas)) {
-                curl_setopt($curl, CURLOPT_POSTFIELDS, $p_datas);
-            }
-        }
+
         curl_setopt($curl, CURLOPT_SSL_VERIFYPEER, false);
         $body = curl_exec($curl);
         $ret  = curl_getinfo($curl, CURLINFO_HTTP_CODE);
@@ -212,31 +240,6 @@ class Client implements AuthentificationInterface, AuthorizationInterface, UserI
         }
         
         return $p_response;
-    }
-
-    /**
-     * Constructor
-     * 
-     * @param string $p_broker
-     * @param string $p_secret
-     * @param string $p_ip
-     * @param string $p_env
-     */
-    public function __construct ($p_broker=null, $p_secret=null, $p_ip=null, $p_env=DBCST::ENV_DEV)
-    {
-        if (!session_id()) {
-            session_start();
-        }
-        if ($p_broker !== null) {
-            $this->broker = $p_broker;
-        }
-        if ($p_secret !== null) {
-            $this->secret = $p_secret;
-        }
-        if ($p_ip !== null) {
-            $this->ip = $p_ip;
-        }
-        $this->env = $p_env;
     }
 
     /**

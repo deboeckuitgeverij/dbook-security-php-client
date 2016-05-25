@@ -2,10 +2,6 @@
 namespace DBookSecurityClient;
 
 use DBookSecurityClient\Constants as DBCST;
-use DBookSecurity\DBookSecurityException;
-use DBookSecurity\ErrorCodes;
-use DBookSecurityClient\Models\User;
-use DBookSecurityClient\Models\Product;
 
 /**
  * Main class, the Client
@@ -18,19 +14,19 @@ class BaseGate
 
     /**
      * Instance
-     * @var DBookSecurityClient\Gate
+     * @var BaseGate
      */
     protected static $_instance = false;
 
     /**
      * Gate Client
-     * @var DBookSecurityClient\Gate\...
+     * @var \DBookSecurityClient\Gate\Base
      */
     protected $gate = null;
 
     /**
      * api
-     * @var DBookSecurityClient\Api\Client
+     * @var \DBookSecurityClient\Gate\Base
      */
     protected $api = null;
 
@@ -106,7 +102,7 @@ class BaseGate
      *
      * @param string $p_code
      *
-     * @return \DBookSecurity\DBookSecurityClient
+     * @return BaseGate
      */
     public function setAppCode ($p_code)
     {
@@ -120,7 +116,7 @@ class BaseGate
      *
      * @param string $p_name
      *
-     * @return \DBookSecurity\DBookSecurityClient
+     * @return BaseGate
      */
     public function setAppName ($p_name)
     {
@@ -134,7 +130,7 @@ class BaseGate
      *
      * @param string $p_url
      *
-     * @return \DBookSecurity\DBookSecurityClient
+     * @return BaseGate
      */
     public function setHomeUrl ($p_url)
     {
@@ -148,7 +144,7 @@ class BaseGate
      *
      * @param string $p_url
      *
-     * @return \DBookSecurity\DBookSecurityClient
+     * @return BaseGate
      */
     public function setLoginUrl ($p_url)
     {
@@ -249,7 +245,7 @@ class BaseGate
      *
      * @param string $p_uri
      *
-     * @return \DBookSecurityClient\Gate\...
+     * @return BaseGate
      */
     public function setRedirectUri ($p_uri)
     {

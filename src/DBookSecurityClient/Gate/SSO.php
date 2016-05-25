@@ -2,8 +2,6 @@
 namespace DBookSecurityClient\Gate;
 
 use DBookSecurityClient\Constants AS DBCST;
-use DBookSecurityClient\Model\User;
-use DBookSecurityClient\Model\Product;
 
 /**
  *
@@ -38,12 +36,6 @@ class SSO extends Base
      * @var string
      */
     protected $sessionToken;
-
-    /**
-     * 
-     * @var unknown
-     */
-    protected $cdsso;
 
     /**
      * Constructor

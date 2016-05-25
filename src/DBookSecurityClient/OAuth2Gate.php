@@ -29,7 +29,7 @@ class OAuth2Gate extends BaseGate
      * @param string  $p_env
      * @param boolean $p_debug
      *
-     * @return \DBookSecurity\DBookSecurityClient
+     * @return \DBookSecurityClient\OAuth2Gate
      */
     public static function getInstance ($p_broker_key, $p_broker_secret, $p_env = DBCST::ENV_DEV, $p_debug = false)
     {

@@ -186,20 +186,21 @@ class Client implements AuthentificationInterface, AuthorizationInterface, UserI
         }
         // Next
         $url = $url . $call;
-        // Curll init and call...
+        // Curl init and call...
         $curl = curl_init($url);
+
+        if (isset($p_datas)) {
+            curl_setopt($curl, CURLOPT_POST, true);
+            curl_setopt($curl, CURLOPT_POSTFIELDS, http_build_query($p_datas));
+            $headers[] = "Content-Type:  application/x-www-form-urlencoded";
+        }
+
         curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
         curl_setopt($curl, CURLOPT_HTTPHEADER, $headers);
         if (false !== ($cookies = $this->getCookiesAsHeader())) {
             curl_setopt($curl, CURLOPT_COOKIE, $cookies);
         }
-        if ($p_method != DBCST::METHOD_GET) {
-            curl_setopt($curl, CURLOPT_USERPWD, urlencode($this->broker) . ':' . urlencode($this->secret));
-            curl_setopt($curl, CURLOPT_POST, true);
-            if (isset($p_datas)) {
-                curl_setopt($curl, CURLOPT_POSTFIELDS, $p_datas);
-            }
-        }
+
         curl_setopt($curl, CURLOPT_SSL_VERIFYPEER, false);
         $body = curl_exec($curl);
         $ret  = curl_getinfo($curl, CURLINFO_HTTP_CODE);

@@ -1,7 +1,8 @@
 <?php
-namespace DBookSecurityClient\Models;
+namespace DBookSecurityClient\Model;
 
 use DBookSecurityClient\Constants AS DBCST;
+use DBookSecurityClient\Gate\Gate;
 
 /**
  *
@@ -58,7 +59,7 @@ class Site
      * 
      * @param string $p_name
      * 
-     * @return \DBookSecurityClient\Models\Site
+     * @return $this
      */
     public function setName ($p_name)
     {
@@ -82,7 +83,7 @@ class Site
      * 
      * @param string $p_url
      * 
-     * @return \DBookSecurityClient\Models\Site
+     * @return $this
      */
     public function setUrl ($p_url)
     {
@@ -106,7 +107,7 @@ class Site
      * 
      * @param string $p_image
      * 
-     * @return \DBookSecurityClient\Models\Site
+     * @return $this
      */
     public function setImage ($p_image)
     {
@@ -147,12 +148,9 @@ class Site
      * 
      * @return string
      */
-    public function getLowResUrl ($p_env = DBCST::ENV_DEV)
+    public function getLowResUrl ($p_env = Gate::ENV_DEV)
     {
-        $url = DBCST::getDBookSecurityBaseUrl($p_env);
-        $url .= '/covers/low/' . $this->getImage();
-        
-        return $url;
+        return '/covers/low/' . $this->getImage();
     }
 
     /**
@@ -162,12 +160,8 @@ class Site
      *
      * @return string
      */
-    public function getHighResUrl ($p_env = DBCST::ENV_DEV)
+    public function getHighResUrl ($p_env = Gate::ENV_DEV)
     {
-        $url = DBCST::getDBookSecurityBaseUrl($p_env);
-        $url .= '/covers/high/' . $this->getImage();
-        
-        return $url;
+        return '/covers/high/' . $this->getImage();
     }
-
 }

@@ -1,5 +1,5 @@
 <?php
-namespace DBookSecurityClient\Models;
+namespace DBookSecurityClient\Model;
 
 /**
  *
@@ -70,7 +70,7 @@ class Token
      * 
      * @param string $p_access_code
      * 
-     * @return \DBookSecurityClient\Models\Token
+     * @return $this
      */
     public function setAccessCode ($p_access_code)
     {
@@ -94,7 +94,7 @@ class Token
      * 
      * @param string $p_refresh_token
      * 
-     * @return \DBookSecurityClient\Models\Token
+     * @return $this
      */
     public function setRefreshToken ($p_refresh_token)
     {
@@ -118,7 +118,7 @@ class Token
      * 
      * @param integer $p_expires
      * 
-     * @return \DBookSecurityClient\Models\Token
+     * @return $this
      */
     public function setExpiresIn ($p_expires)
     {
@@ -142,7 +142,7 @@ class Token
      * 
      * @param string $p_type
      * 
-     * @return \DBookSecurityClient\Models\Token
+     * @return $this
      */
     public function setTokenType ($p_type)
     {
@@ -166,7 +166,7 @@ class Token
      * 
      * @param string $p_scope
      * 
-     * @return \DBookSecurityClient\Models\Token
+     * @return $this
      */
     public function setScope ($p_scope)
     {

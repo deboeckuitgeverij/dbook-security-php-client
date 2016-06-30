@@ -1,15 +1,23 @@
 <?php
-namespace DBookSecurityClient\Models;
+namespace DBookSecurityClient\Model;
 
-use DBookSecurityClient\Constants AS DBCST;
-
-/**
- *
- * @author jérôme klam <jerome.klam@deboeck.com>
- *
- */
 class Product
 {
+    const AUDIENCE_ALL     = 'ALL';
+    const AUDIENCE_TEACHER = 'TEACHER';
+    const AUDIENCE_STUDENT = 'STUDENT';
+
+    const PRODUCT_MODE_GROUP = 'GROUP';
+    const PRODUCT_MODE_USER  = 'USER';
+
+    const PRODUCT_TYPE_STANDARD = 'STANDARD';
+    const PRODUCT_TYPE_ABO      = 'ABO';
+    const PRODUCT_TYPE_DEMO     = 'DEMO';
+
+    const PRODUCT_DURATION_UNLIMITED = 'UNLIMITED';
+    const PRODUCT_DURATION_1M        = '1M';
+    const PRODUCT_DURATION_1Y        = '1Y';  // 1 year : 01/01 to 31/12
+    const PRODUCT_DURATION_1SY       = '1SY'; // 1 school year
 
     /**
      * Product id
@@ -31,13 +39,13 @@ class Product
 
     /**
      * Product valid from
-     * @var datetime
+     * @var \DateTime
      */
     protected $from = null;
 
     /**
      * Product valid to
-     * @var datetime
+     * @var \DateTime
      */
     protected $to = null;
 
@@ -45,19 +53,19 @@ class Product
      * Product mode
      * @var string
      */
-    protected $mode = DBCST::PRODUCT_MODE_USER;
+    protected $mode = self::PRODUCT_MODE_USER;
 
     /**
      * Product type
      * @var string
      */
-    protected $type = DBCST::PRODUCT_TYPE_STANDARD;
+    protected $type = self::PRODUCT_TYPE_STANDARD;
 
     /**
      * Product duration
      * @var string
      */
-    protected $duration = DBCST::PRODUCT_DURATION_UNLIMITED;
+    protected $duration = self::PRODUCT_DURATION_UNLIMITED;
 
     /**
      * Group name
@@ -123,7 +131,7 @@ class Product
      * 
      * @param string $p_id
      * 
-     * @return \DBookSecurityClient\Models\Product
+     * @return $this
      */
     public function setId ($p_id)
     {
@@ -147,7 +155,7 @@ class Product
      * 
      * @param string $p_code
      * 
-     * @return \DBookSecurityClient\Models\Product
+     * @return $this
      */
     public function setCode ($p_code)
     {
@@ -171,7 +179,7 @@ class Product
      * 
      * @param string $p_name
      * 
-     * @return \DBookSecurityClient\Models\Product
+     * @return $this
      */
     public function setName ($p_name)
     {
@@ -195,7 +203,7 @@ class Product
      * 
      * @param datetime $p_from
      * 
-     * @return \DBookSecurityClient\Models\Product
+     * @return $this
      */
     public function setFrom ($p_from)
     {
@@ -219,7 +227,7 @@ class Product
      * 
      * @param datetime $p_to
      * 
-     * @return \DBookSecurityClient\Models\Product
+     * @return $this
      */
     public function setTo ($p_to)
     {
@@ -243,7 +251,7 @@ class Product
      * 
      * @param string $p_type
      * 
-     * @return \DBookSecurityClient\Models\Product
+     * @return $this
      */
     public function setType ($p_type)
     {
@@ -270,7 +278,7 @@ class Product
      * 
      * @param string $p_mode
      * 
-     * @return \DBookSecurityClient\Models\Product
+     * @return $this
      */
     public function setMode ($p_mode)
     {
@@ -294,7 +302,7 @@ class Product
      * 
      * @param string $p_group
      * 
-     * @return \DBookSecurityClient\Models\Product
+     * @return $this
      */
     public function setGroup ($p_group)
     {
@@ -318,7 +326,7 @@ class Product
      * 
      * @param string $p_duration
      * 
-     * @return \DBookSecurityClient\Models\Product
+     * @return $this
      */
     public function setDuration ($p_duration)
     {
@@ -345,7 +353,7 @@ class Product
      * 
      * @param number $p_tokens
      * 
-     * @return \DBookSecurityClient\Models\Product
+     * @return $this
      */
     public function setTokens ($p_tokens)
     {
@@ -369,7 +377,7 @@ class Product
      * 
      * @param string $p_audience
      * 
-     * @return \DBookSecurityClient\Models\Product
+     * @return $this
      */
     public function setAudience ($p_audience)
     {

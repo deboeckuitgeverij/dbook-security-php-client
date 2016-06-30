@@ -2,23 +2,18 @@
 namespace DBookSecurityClient\Api;
 
 use DBookSecurityClient\Constants AS DBCST;
-use DBookSecurityClient\Interfaces\AuthentificationInterface;
-use DBookSecurityClient\Interfaces\AuthorizationInterface;
-use DBookSecurityClient\Interfaces\UserInterface;
-use DBookSecurityClient\Models\User;
-use DBookSecurityClient\Models\Product;
-use DBookSecurityClient\Models\Token;
-use DBookSecurityClient\DBookSecurityException;
+use DBookSecurityClient\Gate\Gate;
+use DBookSecurityClient\Model\User;
+use DBookSecurityClient\ApiException;
+use DBookSecurityClient\UriHelper;
 
-/**
- * Main Api Client
- * 
- * @author jérôme klam <jerome.klam@deboeck.com>
- * 
- * 
- */
-class Client implements AuthentificationInterface, AuthorizationInterface, UserInterface
+class Client
 {
+    const METHOD_GET    = 'GET';
+    const METHOD_POST   = 'POST';
+    const METHOD_PUT    = 'PUT';
+    const METHOD_DELETE = 'DELETE';
+
     /**
      * @var string
      */
@@ -31,22 +26,9 @@ class Client implements AuthentificationInterface, AuthorizationInterface, UserI
     protected $url = "https://::env::dbook-security.deboeck.com/api/";
 
     /**
-     * My identifier, given by DeBoeck.
-     * @var string
+     * @var Gate
      */
-    protected $broker = null;
-
-    /**
-     * My secret word, given by DeBoeck.
-     * @var string
-     */
-    protected $secret = null;
-
-    /**
-     * IP forced
-     * @var string
-     */
-    protected $ip = null;
+    protected $gate;
 
     /**
      * Cookies
@@ -56,67 +38,46 @@ class Client implements AuthentificationInterface, AuthorizationInterface, UserI
 
     /**
      * User cache
-     * @var mixed
+     * @var User
      */
-    protected $userinfo = false;
+    protected $userInfo;
 
     /**
-     * @param string $p_broker
-     * @param string $p_secret
-     * @param string $p_ip
-     * @param string $p_env
+     * @param string $env
      */
-    public function __construct ($p_broker=null, $p_secret=null, $p_ip=null, $p_env=DBCST::ENV_DEV)
+    public function __construct($env = Gate::ENV_PROD)
     {
-        if (!session_id()) {
-            session_start();
-        }
-        if ($p_broker !== null) {
-            $this->broker = $p_broker;
-        }
-        if ($p_secret !== null) {
-            $this->secret = $p_secret;
-        }
-        if ($p_ip !== null) {
-            $this->ip = $p_ip;
-        }
-        $this->env = $p_env;
+        $this->env = $env;
     }
 
     /**
-     * Get url
+     * @return Gate
+     */
+    public function getGate()
+    {
+        return $this->gate;
+    }
+
+    /**
+     * get API url for configured environment
      *
+     * @param null $path
      * @return string
      */
-    protected function getUrl ()
+    protected function getUrl($path = null)
     {
         $url = str_replace('::env::', $this->env, rtrim($this->url, '/'));
-        if ($this->env == DBCST::ENV_DEV) {
+
+        if ($this->env == Gate::ENV_DEV) {
             // No https in dev
             $url = str_replace('https://', 'http://', $url);
         }
-        return $url;
-    }
 
-    /**
-     * Create hmach string
-     * 
-     * @param mixed $p_datas
-     * 
-     * @return array
-     */
-    protected function hmacCreate ($p_datas)
-    {
-        $iRequestTime = time();
-        $msgData      = is_array($p_datas) ? http_build_query($p_datas, '', '&') : $p_datas;
-        $data         = $iRequestTime . $this->broker . $msgData;
-        $serverHash   = hash_hmac('sha256', $data, $this->secret);
-        
-        return array (
-            'API_ID'   => $this->broker,
-            'API_TIME' => $iRequestTime,
-            'API_HASH' => $serverHash
-        );
+        if ($path) {
+            return UriHelper::addPath($url, $path);
+        }
+
+        return $url;
     }
 
     /**
@@ -125,182 +86,119 @@ class Client implements AuthentificationInterface, AuthorizationInterface, UserI
     public function flushCookies ()
     {
         $this->cookies = array();
-        
+
         return $this;
     }
 
     /**
      * Add a Cookie
-     * 
-     * @param string $p_key
-     * @param string $p_value
-     * 
+     *
+     * @param string $key
+     * @param string $value
+     *
      * @return \DBookSecurityClient\Api\Client
      */
-    public function addCookie ($p_key, $p_value)
+    public function addCookie ($key, $value)
     {
-        $this->cookies[$p_key] = $p_value;
-        
+        $this->cookies[$key] = $value;
+
         return $this;
     }
 
     /**
      * Return the cookies' array as header
-     * 
+     *
      * @return string | boolean
      */
     protected function getCookiesAsHeader()
     {
-        $cookies = false;
-        foreach ($this->cookies as $key=>$value)
-        {
-            if ($cookies === false) {
-                $cookies = urlencode($key) . '=' . urlencode($value);
-            } else {
-                $cookies .= ';' . urlencode($key) . '=' . urlencode($value);
-            }
-        }
-        
-        return $cookies;
+        return http_build_query($this->cookies, null, ';');
     }
 
     /**
-     * CALL the API in POST, get the status and body
+     * CALL the API, get the status and body
      *
-     * @param string $p_method
-     * @param string  $p_call
-     * @param array  $p_datas
-     * 
-     * @return array
+     * @param string $method
+     * @param string $path
+     * @param array $data
+     * @param array $headers
+     * @return Response
+     * @throws ApiException
      */
-    public function apiCall ($p_method = DBCST::METHOD_GET, $p_call, $p_datas = array())
+    public function execute($method = self::METHOD_GET, $path, $data = array(), $headers = array())
     {
-        $url  = $this->getUrl();
-        $call = '';
-        $call = '/' . strtolower(ltrim($p_call, '/'));
-        $API  = $this->hmacCreate($p_datas);
-        // Convert API to Header array
-        $headers = array();
-        foreach ($API as $key=>$value) {
-            $headers[] = $key . ' : ' . $value;
-        }
-        // Next
-        $url = $url . $call;
-        // Curl init and call...
-        $curl = curl_init($url);
+        $headers = array_merge(array(
+            'Accept: application/json'
+        ), $headers);
 
-        if (isset($p_datas)) {
+        $url = $this->getUrl($path);
+        $curl = curl_init($url);
+        curl_setopt($curl, CURLOPT_SSL_VERIFYPEER, false);
+        curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
+
+        if ($method !== self::METHOD_GET) {
             curl_setopt($curl, CURLOPT_POST, true);
-            curl_setopt($curl, CURLOPT_POSTFIELDS, http_build_query($p_datas));
+            curl_setopt($curl, CURLOPT_POSTFIELDS, http_build_query($data));
             $headers[] = "Content-Type:  application/x-www-form-urlencoded";
         }
 
-        curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
         curl_setopt($curl, CURLOPT_HTTPHEADER, $headers);
         if (false !== ($cookies = $this->getCookiesAsHeader())) {
             curl_setopt($curl, CURLOPT_COOKIE, $cookies);
         }
 
-        curl_setopt($curl, CURLOPT_SSL_VERIFYPEER, false);
-        $body = curl_exec($curl);
-        $ret  = curl_getinfo($curl, CURLINFO_HTTP_CODE);
-        if (curl_errno($curl) != 0) {
-            throw new DBookSecurityException(sprintf('SSO failure: HTTP request to server failed. %s', curl_error($curl)));
-        }
-        if ($body != '') {
-            if (json_decode($body) === false || json_decode($body) === null) {
-                throw new DBookSecurityException('SSO failure: HTTP request to server failed !');
-            }
-        } else {
-            $body = null;
-        }
+        $content        = curl_exec($curl);
+        $status         = curl_getinfo($curl, CURLINFO_HTTP_CODE);
+        $contentType    = curl_getinfo($curl, CURLINFO_CONTENT_TYPE);
+        $errorNumber    = curl_errno($curl);
+        $error          = curl_error($curl);
         curl_close($curl);
-        
-        return array($ret, $body);
+
+        if ($errorNumber > 0) {
+            throw new ApiException(sprintf('SSO failure: HTTP request to server failed. %s', $error));
+        }
+
+        switch (Response::assertContentType($contentType)) {
+            case Response::TYPE_JSON:
+                return new JsonResponse($status, $contentType, $content, $url);
+            default:
+                return new Response($status, $contentType, $content, $url);
+        }
     }
 
     /**
-     * Set user info from user XML
-     *
-     * @param string $p_response
-     * 
-     * @return mixed
+     * @param string $path
+     * @param array $data
+     * @param array $headers
+     * @return Response
+     * @throws ApiException
      */
-    protected function parseInfo ($p_response)
+    public function apiGet($path, $data = array(), $headers = array())
     {
-        $result = json_decode($p_response, true);
-        if (is_array($result)) {
-            
-            return $result;
-        } else {
-            if (is_object($result)) {
-                
-                return (array)$result;
-            }
-        }
-        
-        return $p_response;
+        return $this->execute(self::METHOD_GET, $path, $data, $headers);
     }
 
     /**
-     * Check if user is logged in
-     *
-     * @param string $p_redirectMode
-     *
-     * @return boolean
+     * @param string $path
+     * @param array $data
+     * @param array $headers
+     * @return Response
+     * @throws ApiException
      */
-    public function checkLoggedIn ($p_redirectMode = DBCST::REDIRECT_NONE)
+    public function apiPost($path, $data = array(), $headers = array())
     {
-        $this->getUser();
-        if ($this->userinfo === false) {
-            
-            return false;
-        }
-        
-        return true;
+        return $this->execute(self::METHOD_POST, $path, $data, $headers);
     }
 
     /**
-     * login with email and password
-     *
-     * @param string  $p_login
-     * @param string  $p_password
-     * @param boolean $p_autoLogin
-     *
-     * @return array
-     */
-    public function signinByLoginAndPassword ($p_login, $p_password, $p_autoLogin = false)
-    {
-        if (!isset($p_login) && isset($_REQUEST['username'])) {
-            $p_login=$_REQUEST['username'];
-        }
-        if (!isset($p_password) && isset($_REQUEST['password'])) {
-            $p_password=$_REQUEST['password'];
-        }
-        list($ret, $body) = $this->apiCall(DBCST::METHOD_POST, 'login', array('login' => $p_login, 'password' => $p_password));
-        if ($ret == 200) {
-            
-            return array($ret, $this->parseInfo($body));
-        }
-        
-        return array($ret, $body);
-    }
-
-    /**
-     * Logout
-     *
-     * @return array
+     * @return Response
      */
     public function logout ()
     {
-        list($ret, $body) = $this->apiCall(DBCST::METHOD_POST, 'logout');
-        
-        return array($ret, $this->parseInfo($body));
+        return $this->apiPost('/logout');
     }
 
     /**
-     * Logout
-     *
      * @return array
      */
     public function completeLogout ()
@@ -309,37 +207,13 @@ class Client implements AuthentificationInterface, AuthorizationInterface, UserI
     }
 
     /**
-     * Get user information.
-     * 
-     * @return array
-     */
-    public function getUser ()
-    {
-        if (!$this->userinfo) {
-            $this->userinfo = false;
-            list($ret, $body) = $this->apiCall(DBCST::METHOD_POST, 'user');
-            if ($ret == 200) {
-                if (false !== ($datas = $this->parseInfo($body))) {
-                    $this->userinfo = new User($datas);
-                } else {
-                    $ret = 500;
-                }
-            }
-        } else {
-            $ret = 200;
-        }
-        
-        return array($ret, $this->userinfo);
-    }
-
-    /**
      * Try to get a token per product
      *
-     * @param array $p_products
+     * @param array $products
      *
      * @return string | boolean
      */
-    public function takeToken ($p_products)
+    public function takeToken ($products)
     {
         return false;
     }
@@ -347,104 +221,57 @@ class Client implements AuthentificationInterface, AuthorizationInterface, UserI
     /**
      * Free products tokens
      *
-     * @param array  $p_products
+     * @param array  $products
      *
      * @return string | boolean
      */
-    public function freeToken ($p_products)
+    public function freeToken ($products)
     {
-        return false;
-    }
-
-    /**
-     * Try to get a user with it's id
-     *
-     * @param string $p_id
-     *
-     * @return DBookSecurityClient\Models\User | boolean
-     */
-    public function getUserById ($p_id)
-    {
-        list($ret, $body) = $this->apiCall(DBCST::METHOD_GET, '/users/id/' . $p_id);
-        if ($ret == 200) {
-            if (is_array($arr = $this->parseInfo($body))) {
-                
-                return new User($arr);
-            }
-        }
-        
         return false;
     }
 
     /**
      * Try to get a user with an OAuth 2.0 token
      *
-     * @param string  $p_token
+     * @param string  $token
      *
-     * @return DBookSecurityClient\Models\User | boolean
-    */
-    public function getUserByOauth2Token ($p_token)
+     * @return User|boolean
+     */
+    public function getUserByOauth2Token($token)
     {
-        list($ret, $body) = $this->apiCall(DBCST::METHOD_GET, '/users/oauth2/' . $p_token);
-        if ($ret == 200) {
-            if (is_array($arr = $this->parseInfo($body))) {
-                
-                return new User($arr);
-            }
+        $response = $this->apiGet(self::METHOD_GET, '/users/oauth2/' . $token);
+        if ($response->getStatus() === 200) {
+            return new User($response->getContent());
         }
-        
-        return false;
+
+        return null;
     }
 
     /**
-     * Try to get a user with an OAuth 2.0 token
-     *
-     * @param string $p_code
-     * @param string $p_redirect_uri
-     * @param string $p_state
-     *
-     * @return \DBookSecurityClient\Models\Token|boolean
+     * @param string $filter
+     * @return array
      */
-    public function getOAuth2Token ($p_code, $p_redirect_uri = null, $p_state = null)
+    public function getSchools($filter = null)
     {
-        $add = array();
-        if ($p_state !== null) {
-            $add['state'] = $p_state;
-        }
-        list($ret, $body) = $this->apiCall(DBCST::METHOD_POST, '/oauth2/token', array_merge($add, array('code' => $p_code, 'redirect_uri' => $p_redirect_uri)));
-        if ($ret == 200) {
-            if (is_array($arr = $this->parseInfo($body))) {
-                
-                return new Token($arr);
-            }
-        }
-        
-        return false;
+        return $this->apiPost('/crm/schools', array('search' => $filter))->getContent();
     }
 
     /**
-     * Try to get a new token from a refreshToken
-     * 
-     * @param string $p_refreshToken
-     * @param string $p_state
-     * 
-     * @return \DBookSecurityClient\Models\Token|boolean
+     * @param string $id
+     * @param string $firstName
+     * @param string $lastName
+     * @param string $role
+     * @param array $schools
+     * @return array
      */
-    public function getOAuth2FreshToken ($p_refreshToken, $p_state = null)
+    public function profile($id, $firstName, $lastName, $role, $schools)
     {
-        $add = array();
-        if ($p_state !== null) {
-            $add['state'] = $p_state;
-        }
-        list($ret, $body) = $this->apiCall(DBCST::METHOD_POST, '/oauth2/refresh', array_merge($add, array('code' => $p_refreshToken)));
-        if ($ret == 200) {
-            if (is_array($arr = $this->parseInfo($body))) {
-                
-                return new Token($arr);
-            }
-        }
-        
-        return false;
+        return $this->apiGet('/profile', array(
+            'user_id' => $id,
+            'first_name' => $firstName,
+            'last_name' => $lastName,
+            'schools' => $schools,
+            'role' => $role,
+        ))->getContent();
     }
-
 }

@@ -1,22 +1,12 @@
 <?php
 namespace DBookSecurityClient\Gate;
 
-use DBookSecurityClient\Constants AS DBCST;
+use DBookSecurityClient\Api\Client;
 
-/**
- *
- * @author jérôme klam <jerome.klam@deboeck.com>
- *
- */
-class SSO extends Base
+class SSO extends Gate
 {
-
-    /**
-     * CDSSOID cookie name
-     * @var string
-     */
     const CDSSOID_NAME  = 'BROKER_CDSSOID';
-    const CDSSOID_FIELD = 'CDSSOSSID';
+    const CDSSOID_FIELD = 'CDSSOID';
     const TOKEN_NAME    = 'BROKER_TOKEN';
     const LOGOUT_FIELD  = 'logout';
 
@@ -27,7 +17,7 @@ class SSO extends Base
 
     /**
      * Need to be shorter than session expire of SSO server
-     * @var string
+     * @var int
      */
     public $sessionExpire = 1800;
     
@@ -38,47 +28,36 @@ class SSO extends Base
     protected $sessionToken;
 
     /**
-     * Constructor
-     * 
-     * @param string  $p_broker
-     * @param string  $p_secret
-     * @param string  $p_ip
-     * @param boolean $p_auto_attach
-     * @param string  $p_env
+     * @param string  $broker
+     * @param string  $secret
+     * @param boolean $autoAttach
+     * @param string  $env
      */
-    public function __construct ($p_broker=null, $p_secret=null, $p_ip=null, $p_env=DBCST::ENV_DEV, $p_auto_attach=true)
+    public function __construct($broker, $secret, $env = self::ENV_PROD, $autoAttach = true)
     {
-        if (!session_id()) {
-            session_start();
-        }
-        $this->env = $p_env;
-        if ($p_broker !== null) {
-            $this->broker = $p_broker;
-        }
-        if ($p_secret !== null) {
-            $this->secret = $p_secret;
-        }
-        if ($p_ip !== null) {
-            $this->ip = $p_ip;
-        }
+        parent::__construct($broker, $secret);
+
         if (isset($_COOKIE[self::TOKEN_NAME])) {
             $this->sessionToken = $_COOKIE[self::TOKEN_NAME];
         }
         if (isset($_GET[self::CDSSOID_FIELD])) {
             setcookie(self::CDSSOID_NAME, $_GET[self::CDSSOID_FIELD]);
         }
+
+        $this->client
+            ->addCookie('DBSV2APP', $this->getSessionToken())
+            ->addCookie('DBSV2CDSSO', $this->getCDSSOID())
+        ;
+        
         // Special parameters
         $this
-            ->excludeFieldAtRedirect(self::CDSSOID_FIELD)
-            ->excludeFieldAtRedirect(self::LOGOUT_FIELD)
+            ->addIgnoreQueryParam(self::CDSSOID_FIELD)
+            ->addIgnoreQueryParam(self::LOGOUT_FIELD)
         ;
-        // Available calls
-        $this
-            ->addCall('cdsso', '/cdsso')
-            ->addCall('attach', '/auth/attach')
-        ;
-        // attach
-        $this->attach($p_auto_attach);
+
+        if ($autoAttach) {
+            $this->attach();
+        }
     }
 
     /**
@@ -96,45 +75,54 @@ class SSO extends Base
     }
 
     /**
-     * Return CDSSO cookie
+     * return CDSSO cookie
      *
-     * @return string
+     * @return string|null
      */
-    public function getCDSSOID ()
+    public function getCDSSOID()
     {
         if (isset($_COOKIE[self::CDSSOID_NAME])) {
             return $_COOKIE[self::CDSSOID_NAME];
         }
-        $this->reload();
+
+        return null;
     }
 
-    /**
-     * call attach
-     * 
-     * @param boolean $p_auto_attach
-     */
-    public function attach ($p_auto_attach=true)
+    public function authenticate(array $options = array())
     {
-        if ($p_auto_attach && (!isset($_COOKIE[self::CDSSOID_NAME] ) || !isset($this->sessionToken))) {
-            $uri  = $this->getCurrentUrl(array(self::CDSSOID_FIELD => ':CDSSOID:'));
-            $data = array('token'=>$this->getSessionToken(), 'redirect_uri' => $uri);
-            $this->gateCall('attach', $data, 307);
-            exit;
+        $options = array_merge(array(
+            'login' => isset($_REQUEST['login']) ? $_REQUEST['login']: null,
+            'password' => isset($_REQUEST['password']) ? $_REQUEST['password']: null,
+        ), $options);
+
+        return $this->call(Client::METHOD_POST, '/login', array(
+            'login' => $options['login'],
+            'password' => $options['password'],
+        ));
+    }
+
+    public function logout(array $options = array())
+    {
+        $options = array_merge(array(
+            'login' => isset($_REQUEST['login']) ? $_REQUEST['login']: null,
+            'password' => isset($_REQUEST['password']) ? $_REQUEST['password']: null,
+        ), $options);
+
+        return $this->call(Client::METHOD_POST, '/login', array(
+            'login' => $options['login'],
+            'password' => $options['password'],
+        ));
+    }
+
+    public function attach()
+    {
+        if (!isset($_COOKIE[self::CDSSOID_NAME] ) || !isset($this->sessionToken)) {
+            $this->forwardToGate('/auth/attach', array(
+                'token' => $this->getSessionToken(),
+                'redirect_uri' => $this->getCurrentUrl(array(
+                    self::CDSSOID_FIELD => ':CDSSOID:'
+                ))
+            ));
         }
     }
-
-    /**
-     * Reload page for all stuff, CDSSO, attach, ...
-     *
-     * @todo infinite loop
-     */
-    public function reload ()
-    {
-        setcookie(self::CDSSOID_NAME, null, time() - 1000);
-        //setcookie(self::TOKEN_NAME, null, time() - 1000); We don't need to remove this one...
-        $url = $this->getCurrentUrl();
-        header("Location: " . $url, true, 301);
-        exit;
-    }
-
 }

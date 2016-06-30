@@ -44,7 +44,7 @@ The main object, here the maintained methods :
 ## role
 > name : getRole
 >
-> return : \DBookSecurityClient\Constants::ROLE_*
+> return : self::ROLE_*
 
 ## language
 > name : getPreferredLanguage
@@ -56,12 +56,12 @@ The main object, here the maintained methods :
 ## products
 > name : getProducts
 >
-> return : array(\DBookSecurityClient\Models\Product)
+> return : array(\DBookSecurityClient\Model\Product)
 
 ## sites
 > name : getSites
 >
-> return : array(\DBookSecurityClient\Models\Site)
+> return : array(\DBookSecurityClient\Model\Site)
 
 ---
 Copyright DeBoeck Digital 2015

@@ -25,10 +25,10 @@ Available for the browser session only.
 Add this to your *composer.json*
 ```
     "repositories": [
-        { "type": "git", "url": "https://github.com/DeBoeck/dbook-security-php-client.git" }
+        { "type": "git", "url": "https://github.com/deboeckuitgeverij/dbook-security-php-client.git" }
     ],
     "require": {
-        "DeBoeck/dbook-security-php-client": "1.*"
+        "DeBoeck/dbook-security-php-client": "2.*"
     },
 ```
 
@@ -48,7 +48,7 @@ require_once(APP_PATH . "/vendor/autoload.php");
 
 Then easy to get the main Gate. Three paramaters are required :
 * the broker key and the broker secret given by DeBoeck.
-* the environment (all constants are available in this class : \DBookSecurityClient\Constants)
+* the environment
     * ENV_TEST
     * ENV_PREPROD
     * ENV_PROD  
@@ -57,16 +57,15 @@ Then easy to get the main Gate. Three paramaters are required :
 /**
  * Instantiate the client, choose the right gate (Standard, OAuth2, Saml2)
  */
-$gate = \DBookSecurityClient\StandardAuthGate::getInstance(
-    '<broker>',
-    '<scret>',
-    \DBookSecurityClient\Constants::ENV_PREPROD
-);
-$gate->setRedirectUri('<My callback url>');
+ 
+use DBookSecurityClient\Api;
+use DBookSecurityClient\Gate\SSO;
+
+$api = new Api(new SSO('<broker>', '<secret>', SSO::ENV_DEV));
 ```
 > The broker are by default the same for all environments, but they can be different if needed.
 
-## Only for the StandardAuth Gate 
+## Only for the SSO Gate 
 
 You need the SSO basic knowledge to go thru this part.
 > Read the [guide](https://github.com/DeBoeck/dbook-security-guide)
@@ -76,35 +75,16 @@ You need the SSO basic knowledge to go thru this part.
 ### Get logged-in User
 
 ```
-/**
- * Get connected user, if none go to login
- */
-$user = $gate->getUser();
-if (!$user) {
-    header("Location: login.php", true, 307);
-    exit;
+if (!$api->isAuthenticated()) {
+    $user = $api->authenticate(array('login' => $_POST['username'], 'password' => $_POST['username']));
+} else {
+    $user = $api->getUser();
 }
 ```
-> The *$user* variable is a model(class), products and sites to. You can see the structure in the /src/DBookSecurityClient/Models folder.
+> The *$user* variable is a model(class). You can see the structure in the /src/DBookSecurityClient/Models folder.
 >
 > A user is composed of
 > * User main data
-> * User products
-> * The DeBoeck websites of the user
-
-### Login a user
-
-```
-/**
- * Login requested
- */
-if ($_SERVER['REQUEST_METHOD'] == 'POST' && $gate->signinByLoginAndPassword($_POST['username'], $_POST['password'])) {
-   header("Location: index.php", true, 303);
-   exit;
-} else {
-   // handle error
-}
-```
 
 ### Logout the user
 
@@ -134,8 +114,9 @@ This is an interactive operation between the user and your website.
 You can add a state parameter, send back at callback. The first parameter is an array of scopes, not implemented yet.
 
 ```
-$gate->askAuthorizationCode([array()[, state]]);
-exit; // It' a redirect
+$api = new Api(new OAuth2('<broker>', '<secret>', OAuth2::ENV_DEV, '<redirect_uri>'));
+$gate = $api->getGate();
+$code  = $gate->getAuthorizationCode();
 ```
 > This authorization code can be used to retrieve an access token for the authorized resources.
 > By default a *GET* parameter called *code* is used at callback
@@ -147,7 +128,7 @@ exit; // It' a redirect
 Get an access token for the user.
 
 ```
-$token = $gate->getToken($code[, $state]);
+$token = $gate->getOAuth2Token($code);
 ```
 
 > This token is used as credential for the user. In most case to retrieve user's informations or to get remote resources.
@@ -163,10 +144,6 @@ $token = $api->getOAuth2FreshToken($refreshToken);
 ```
 
 # Technical informations
-
-All methods are available in the /src/DBookSecurityClient/Interfaces folder.
-
-[Here](https://github.com/DeBoeck/dbook-security-guide/blob/master/api/readme.md) you can find a more detailed version. It's the DeBoeck api documentation.
 
 # To do
 
